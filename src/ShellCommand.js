@@ -81,7 +81,7 @@ proto.path = function(dir) {
 };
 
 /*
- * Specifies that the provided commands should be run synchronously.
+ * Specifies the commands should be run synchronously.
  *
  * @param [...(string|object)]
  * @return {object} The current ShellCommand instance.
@@ -93,7 +93,7 @@ proto.sync = function() {
 };
 
 /*
- * Specifies that the provided commands should be run asynchronously.
+ * Specifies the commands should be run asynchronously.
  *
  * @param [...(string|object)]
  * @return {object} The current ShellCommand instance.
@@ -105,7 +105,7 @@ proto.async = function() {
 };
 
 /*
- * Specifies that the provided commands should be run using parallelshell.
+ * Specifies the commands should be run using parallelshell.
  *
  * @param [...(string|object)]
  * @return {object} The current ShellCommand instance.
@@ -183,7 +183,6 @@ var modelProto = ShellCommandModel.prototype;
  * @param {array} funcArgs The commands to pass to the function.
  */
 modelProto.queueIt = function(func, cmds) {
-
     this.queue.push({
         func: func,
         cmds: cmds
@@ -244,7 +243,6 @@ modelProto.runAsync = function(cmds) {
  * @return {object} A promise which is resolved when the command completes.
  */
 modelProto.runShell = function(cmd) {
-
     if (cmd.run) {
         return cmd.run();
     }
