@@ -1,0 +1,17 @@
+{
+    "ecmaFeatures": {},
+    "env": {
+        "browser": false,
+        "node": true,
+        "amd": false,
+        "mocha": false,
+        "jasmine": true
+    },
+    "rules": {
+        "global-strict": 0,
+        "no-underscore-dangle": 0,
+        "no-use-before-define": [2, "nofunc"],
+        "no-process-exit": 0,
+        "quotes": [2, "single"]
+    }
+}

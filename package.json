@@ -1,0 +1,40 @@
+{
+  "name": "shell-command",
+  "main": "./src/ShellCommand.js",
+  "version": "0.1.0",
+  "description": "ShellCommand provides a programmatic API for executing groups of shell commands synchronously or asynchronously.",
+  "keywords": [
+    "shell",
+    "command",
+    "synchronous",
+    "asynchronous",
+    "parallel"
+  ],
+  "homepage": "https://github.com/JeffHing/shell-command",
+  "license": "MIT",
+  "author": {
+    "name": "Jeffrey Hing",
+    "email": "hingcruz@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JeffHing/shell-command.git"
+  },
+  "dependencies": {
+    "deferred": "^0.7.2",
+    "extend": "^3.0.0",
+    "parallelshell": "^1.2.0",
+    "path": "^0.11.14"
+  },
+  "devDependencies": {
+    "eslint": "^0.23.0",
+    "eslint-loader": "^0.14.0",
+    "jasmine-node": "^1.14.5",
+    "node-libs-browser": "^0.5.2",
+    "webpack": "^1.10.1"
+  },
+  "scripts": {
+    "dev": "parallelshell \"webpack --watch\" \"jasmine-node src/ShellCommand.test.js --color --matchall --autotest --watch src/ShellCommand.js\"",
+    "test": "jasmine-node src/ShellCommand.test.js --color --matchall"
+  }
+}
