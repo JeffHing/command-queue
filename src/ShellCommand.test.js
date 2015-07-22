@@ -53,7 +53,44 @@ describe('ShellCommmand', function() {
     //----------------------------------
     // Path tests
     //----------------------------------
-    describe('adding directories to path', function() {
+
+    describe('adding directories to path using comma sep', function() {
+
+        it('should find commands', function(done) {
+            new ShellCommand()
+                .path(
+                    path.join(process.cwd(), 'src', 'testbin'),
+                    path.join(process.cwd(), 'src', 'testbin', 'more')
+                )
+                .sync('testCmd')
+                .sync('testMoreCmd')
+                .run()
+                .then(
+                    function() {
+                        done();
+                    }
+                );
+        });
+    });
+
+    describe('adding directories to path using chaining', function() {
+
+        it('should find commands', function(done) {
+            new ShellCommand()
+                .path(path.join(process.cwd(), 'src', 'testbin'))
+                .path(path.join(process.cwd(), 'src', 'testbin', 'more'))
+                .sync('testCmd')
+                .sync('testMoreCmd')
+                .run()
+                .then(
+                    function() {
+                        done();
+                    }
+                );
+        });
+    });
+
+    describe('adding directories to path using array', function() {
 
         it('should find commands', function(done) {
             new ShellCommand()
@@ -73,11 +110,11 @@ describe('ShellCommmand', function() {
     });
 
     //----------------------------------
-    // Sync tests
+    // Synchronous execution tests
     //----------------------------------
-    describe('sync exit status', function() {
+    describe('executing synchronous commands', function() {
 
-        it('should be success', function(done) {
+        it('should succeed', function(done) {
             new ShellCommand()
                 .sync(nodeCmd)
                 .run()
@@ -92,7 +129,7 @@ describe('ShellCommmand', function() {
                 );
         });
 
-        it('should be failure', function(done) {
+        it('should fail', function(done) {
             new ShellCommand()
                 .sync(nodeCmdFail)
                 .run()
@@ -107,7 +144,7 @@ describe('ShellCommmand', function() {
                 );
         });
 
-        it('should be failure if at least one fails', function(done) {
+        it('should fail if at least one fails', function(done) {
             new ShellCommand()
                 .sync(
                     nodeCmd,
@@ -125,9 +162,6 @@ describe('ShellCommmand', function() {
                     }
                 );
         });
-    });
-
-    describe('sync execution order', function() {
 
         it('should be executed in order', function(done) {
             var outputQueue = [];
@@ -151,11 +185,11 @@ describe('ShellCommmand', function() {
     });
 
     //----------------------------------
-    // Async tests
+    // Asynchronous execution tests
     //----------------------------------
-    describe('async exit status', function() {
+    describe('executing asynchronous commands', function() {
 
-        it('should be success', function(done) {
+        it('should succeed', function(done) {
             new ShellCommand()
                 .async(nodeCmd)
                 .run()
@@ -170,7 +204,7 @@ describe('ShellCommmand', function() {
                 );
         });
 
-        it('should be failure', function(done) {
+        it('should fail', function(done) {
             new ShellCommand()
                 .async(nodeCmdFail)
                 .run()
@@ -185,7 +219,7 @@ describe('ShellCommmand', function() {
                 );
         });
 
-        it('should be failure if at least one fails', function(done) {
+        it('should fail if at least one fails', function(done) {
             new ShellCommand()
                 .async(
                     nodeCmd,
@@ -203,9 +237,6 @@ describe('ShellCommmand', function() {
                     }
                 );
         });
-    });
-
-    describe('async execution order', function() {
 
         it('should be executed in order of completion', function(done) {
             var outputQueue = [];
@@ -229,11 +260,11 @@ describe('ShellCommmand', function() {
     });
 
     //----------------------------------
-    // Parallel tests
+    // Parallel execution tests
     //----------------------------------
-    describe('parallel exit status', function() {
+    describe('executing parallel commands', function() {
 
-        it('should be success', function(done) {
+        it('should succeed', function(done) {
             new ShellCommand()
                 .parallel(nodeCmd)
                 .run()
@@ -248,7 +279,7 @@ describe('ShellCommmand', function() {
                 );
         });
 
-        it('should be failure', function(done) {
+        it('should fail', function(done) {
             new ShellCommand()
                 .parallel(nodeCmdFail)
                 .run()
@@ -263,7 +294,7 @@ describe('ShellCommmand', function() {
                 );
         });
 
-        it('should be failure if at least one fails', function(done) {
+        it('should fail if at least one fails', function(done) {
             new ShellCommand()
                 .parallel(
                     nodeCmd,
@@ -281,9 +312,6 @@ describe('ShellCommmand', function() {
                     }
                 );
         });
-    });
-
-    describe('parallel execution order', function() {
 
         it('should be executed in order', function(done) {
             var outputQueue = [];
@@ -307,10 +335,10 @@ describe('ShellCommmand', function() {
     });
 
     //----------------------------------
-    // Combining Sync, Async, and Parallel tests
+    // Batched execution tests
     //----------------------------------
 
-    describe('async and sync execution order', function() {
+    describe('batched commands', function() {
 
         it('should be executed in the correct order', function(done) {
             var outputQueue = [];
@@ -357,7 +385,11 @@ describe('ShellCommmand', function() {
         });
     });
 
-    describe('sync within async execution order', function() {
+    //----------------------------------
+    // Nested execution tests
+    //----------------------------------
+
+    describe('sync nested within async', function() {
 
         it('should be executed in the correct order', function(done) {
             var outputQueue = [];
@@ -389,7 +421,7 @@ describe('ShellCommmand', function() {
         });
     });
 
-    describe('async within sync execution order', function() {
+    describe('async nested within sync', function() {
 
         it('should be executed in the correct order', function(done) {
             var outputQueue = [];

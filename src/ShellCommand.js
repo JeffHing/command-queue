@@ -65,17 +65,20 @@ var proto = ShellCommand.prototype;
 /*
  * Adds the directory to the ShellCommand's PATH variable.
  *
- * @param {string|array}
+ * @param [...string|array]
  * @return {object} The current ShellCommand instance.
  */
-proto.path = function(dir) {
-    if (Array.isArray(dir)) {
-        for (var i = 0; i < dir.length; i++) {
-            this.path(dir[i]);
+proto.path = function() {
+    for (var i = 0; i < arguments.length; i++) {
+        var dir = arguments[i];
+        if (Array.isArray(dir)) {
+            for (var j = 0; j < dir.length; j++) {
+                this.path(dir[j]);
+            }
+        } else {
+            var m = this[MODEL];
+            m.env.PATH = dir + ';' + m.env.PATH;
         }
-    } else {
-        var m = this[MODEL];
-        m.env.PATH = dir + ';' + m.env.PATH;
     }
     return this;
 };
