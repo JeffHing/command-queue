@@ -2,7 +2,7 @@
   "name": "shell-command",
   "main": "./src/ShellCommand.js",
   "version": "0.1.0",
-  "description": "ShellCommand provides a programmatic API for executing groups of shell commands synchronously or asynchronously.",
+  "description": "A programmatic API for executing groups of shell commands synchronously or asynchronously.",
   "keywords": [
     "shell",
     "command",
