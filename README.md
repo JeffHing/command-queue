@@ -3,8 +3,8 @@
 # ShellCommand
 
 ShellCommand provides a programmatic API for executing groups of shell commands synchronously or asynchronously. It was orginally created to migrate complex
-build steps from the package.json "scripts" object, to a JavaScript
-file where complexity can be more easily managed.
+build steps from the "scripts" object of a package.json file, to a JavaScript
+file where execution flow can be more easily managed.
 
 ## Table of Contents
 
@@ -15,7 +15,7 @@ file where complexity can be more easily managed.
     - [Synchronous Execution](#synchronous-execution)
     - [Asynchronous Execution](#Asynchronous-execution)
     - [Parallel Execution](#Parallel-execution)
-    - [Staged Execution](#Staged-execution)
+    - [Batched Execution](#Batched-execution)
     - [Nested Execution](#Nested-execution)
 
 ## Features
@@ -51,7 +51,7 @@ new ShellCommand()
     )
     ...
 ```
-Calls to `.path()` can be chained:
+Directories can be specified using chained calls:
 
 ```javascript
 new ShellCommand()
@@ -116,9 +116,9 @@ new ShellCommand()
     .run();
 ```
 
-### Staged Execution
+### Batched Execution
 
-ShellCommand stages the execution of commands by waiting for the current set 
+ShellCommand batches the execution of commands by waiting for the current set 
 of commands to complete before executing the next set of commands.
 
 In this example, ShellCommand waits for the A commands to complete
@@ -149,8 +149,8 @@ new ShellCommand()
 
 ### Nested Execution
 
-The `.sync()` and `.async()` methods support passing in a ShellCommand 
-instance as a command:
+The `.sync()` and `.async()` methods can be passed a ShellCommand instance
+as a command:
 
 ```javascript
 new ShellCommand()
@@ -176,8 +176,7 @@ new ShellCommand()
 ```
 
 You can pass in any object as a command as long as the
-object has a `run()` method, and returns a promise that has the
-same signature as a [deferred](https://www.npmjs.com/package/deferred) promise.
+object has a `.run()` method, and returns a 
+[deferred](https://www.npmjs.com/package/deferred) promise.
 
-*Note:* The `.parallel()` method does not support passing in objects 
-as commands.
+**Note:** The `.parallel()` method only accepts strings for specifying commands.
