@@ -2,9 +2,12 @@
 
 # ShellCommand
 
-ShellCommand provides a programmatic API for executing groups of shell commands synchronously or asynchronously. It was orginally created to migrate complex
-build steps from the "scripts" object of a package.json file, to a JavaScript
-file where execution flow can be more easily managed.
+ShellCommand provides a programmatic API for executing groups of shell 
+commands synchronously or asynchronously. It was originally created to
+provide an alternative to using the "scripts" object in package.json for 
+executing shell commands. By using ShellCommand, you can easily execute 
+shell commands from a JavaScript file instead, which is better suited for 
+managing complex build steps.
 
 ## Table of Contents
 
@@ -17,10 +20,12 @@ file where execution flow can be more easily managed.
     - [Parallel Execution](#Parallel-execution)
     - [Batched Execution](#Batched-execution)
     - [Nested Execution](#Nested-execution)
+    - [Run](#run)
 
 ## Features
 
-* Supports any combination of synchronous and asynchronous execution.
+* A flexible API for supporting different combinations of synchronous
+and asynchronous execution.
 * Supports [Parallel Shell](https://www.npmjs.com/package/parallelshell).
 
 ## Installation
@@ -38,10 +43,11 @@ var ShellCommand = require("shell-command");
 
 ### Path
 
-By default, all commands are executed using the current
-[process.env](https://nodejs.org/api/process.html#process_process_env).
-To add additional directories for command searching, use the
-`.path()` method:
+Commands are executed using the current
+[process.env](https://nodejs.org/api/process.html#process_process_env),
+which also contains the PATH variable used to search for commands.
+
+To add additional search directories, use the `.path()` method:
 
 ```javascript
 new ShellCommand()
@@ -51,7 +57,8 @@ new ShellCommand()
     )
     ...
 ```
-Directories can be specified using chained calls:
+
+Directories can also be added using chained calls:
 
 ```javascript
 new ShellCommand()
@@ -60,17 +67,16 @@ new ShellCommand()
     ...
 ```
 
-Directories can be specified using arrays:
+Or arrays:
 
 ```javascript
 new ShellCommand()
     .path(['./node_modules/.bin', './myScripts])
     ...
 ```    
-
 ### Synchronous Execution
 
-To run commands synchronously, use the `.sync()` method:
+To specify the commands to run synchronously, use the `.sync()` method:
 
 ```javascript
 new ShellCommand()
@@ -84,7 +90,7 @@ new ShellCommand()
 
 ### Asynchronous Execution
 
-To run commands asynchronously, use the `.async()` method:
+To specify the commands to run asynchronously, use the `.async()` method:
 
 ```javascript
 new ShellCommand()
@@ -104,7 +110,8 @@ process in regards to termination. This is particularly useful when you
 need to kill all your commands at once. See Parallel Shell's README for a 
 full explanation of its features.
 
-To run commands using Parallel Shell, use the `.parallel()` method:
+To specify the commands to run using Parallel Shell, 
+use the `.parallel()` method:
 
 ```javascript
 new ShellCommand()
@@ -149,8 +156,8 @@ new ShellCommand()
 
 ### Nested Execution
 
-The `.sync()` and `.async()` methods can be passed a ShellCommand instance
-as a command:
+The `.sync()` and `.async()` methods can be passed ShellCommand instances
+as commands:
 
 ```javascript
 new ShellCommand()
@@ -180,3 +187,17 @@ object has a `.run()` method, and returns a
 [deferred](https://www.npmjs.com/package/deferred) promise.
 
 **Note:** The `.parallel()` method only accepts strings for specifying commands.
+
+### Run
+
+To begin command execution use the `.run()` method:
+
+```javascript
+new ShellCommand()
+    .sync('command 1')
+    .run();
+```    
+
+The `.run()` method returns a 
+[deferred](https://www.npmjs.com/package/deferred) promise which is resolved
+when all the commands have completed. 
