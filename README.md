@@ -182,11 +182,7 @@ new ShellCommand()
     .run();
 ```
 
-You can pass in any object as a command as long as the
-object has a `.run()` method, and returns a 
-[deferred](https://www.npmjs.com/package/deferred) promise.
-
-**Note:** The `.parallel()` method only accepts strings for specifying commands.
+**Note:** The `.parallel()` method can only be passed strings for specifying commands.
 
 ### Run
 
