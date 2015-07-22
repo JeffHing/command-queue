@@ -84,31 +84,31 @@ proto.path = function() {
 };
 
 /*
- * Specifies the commands should be run synchronously.
+ * Specifies that the commands should be run synchronously.
  *
  * @param [...(string|object)]
  * @return {object} The current ShellCommand instance.
  */
 proto.sync = function() {
     var m = this[MODEL];
-    m.queueIt(m.runSync, arguments);
+    m.batchIt(m.runSync, arguments);
     return this;
 };
 
 /*
- * Specifies the commands should be run asynchronously.
+ * Specifies that the commands should be run asynchronously.
  *
  * @param [...(string|object)]
  * @return {object} The current ShellCommand instance.
  */
 proto.async = function() {
     var m = this[MODEL];
-    m.queueIt(m.runAsync, arguments);
+    m.batchIt(m.runAsync, arguments);
     return this;
 };
 
 /*
- * Specifies the commands should be run using parallelshell.
+ * Specifies that the commands should be run using parallelshell.
  *
  * @param [...(string|object)]
  * @return {object} The current ShellCommand instance.
@@ -119,7 +119,7 @@ proto.parallel = function() {
     for (var i = 0; i < arguments.length; i++) {
         args.push(arguments[i]);
     }
-    m.queueIt(m.runSync, args);
+    m.batchIt(m.runSync, args);
     return this;
 };
 
@@ -138,8 +138,8 @@ proto.run = function() {
 
     function runNext(index) {
         if (index < m.queue.length) {
-            var runType = m.queue[index];
-            runType.func.call(m, runType.cmds)(
+            var batch = m.queue[index];
+            batch.func.call(m, batch.cmds)(
                 function() {
                     runNext(index + 1);
                 },
@@ -180,12 +180,12 @@ function ShellCommandModel() {
 var modelProto = ShellCommandModel.prototype;
 
 /*
- * Queues a set of commands.
+ * Batches a set of commands.
  *
  * @param {function} func The ShellCommandModel function to run the commands.
  * @param {array} funcArgs The commands to pass to the function.
  */
-modelProto.queueIt = function(func, cmds) {
+modelProto.batchIt = function(func, cmds) {
     this.queue.push({
         func: func,
         cmds: cmds
@@ -237,7 +237,7 @@ modelProto.runAsync = function(cmds) {
 };
 
 /*
- * Executes the command within the context of a shell.
+ * Executes the command using a shell.
  *
  * @param {array|object} cmd
  *    If the argument has a .run() method, it is called instead. It
