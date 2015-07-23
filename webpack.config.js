@@ -33,6 +33,6 @@ module.exports = {
     },
 
     output: {
-        filename: 'bundle.js'
+        filename: 'build/bundle.js'
     }
 };
