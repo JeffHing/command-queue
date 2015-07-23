@@ -20,25 +20,46 @@ var path = require('path');
 //
 var nodeCmd = 'node ' +
     path.join(__dirname, 'testbin', 'testCmd.js');
-
 var nodeCmdFail = 'node ' +
     path.join(__dirname, 'testbin', 'testCmd.js') + ' 2';
 
-//
-// Command for testing basic logic.
-//
-function Cmd(delay, output, outputQueue) {
-    this._delay = delay;
-    this._output = output;
-    this._outputQueue = outputQueue;
+
+/*
+ * A ShellCommand used for testing basic logic.
+ *
+ * @constructor
+ */
+function Cmd(delay, id, outputQueue, succeed) {
+    var self = this;
+    self._delay = delay;
+    self._id = id;
+    self._outputQueue = outputQueue;
+    self._succeed = succeed !== undefined ? succeed : true;
+
+    // Override private model's close function
+    self._shellCommand = {};
+    self._shellCommand.close = function() {
+        self._outputQueue.push('close ' + self._id);
+    };
 }
+
+// Pass the "instanceof ShellCommand" test.
+Cmd.prototype = Object.create(ShellCommand.prototype);
+
+Cmd.prototype.constructor = Cmd;
+
+// Override run function.
 Cmd.prototype.run = function() {
     var self = this;
     var def = deferred();
 
     setTimeout(function() {
-        self._outputQueue.push(self._output);
-        def.resolve();
+        self._outputQueue.push(self._id);
+        if (self._succeed) {
+            def.resolve();
+        } else {
+            def.reject();
+        }
     }, self._delay);
 
     return def.promise;
@@ -112,6 +133,7 @@ describe('ShellCommmand', function() {
     //----------------------------------
     // Synchronous execution tests
     //----------------------------------
+
     describe('executing synchronous commands', function() {
 
         it('should succeed', function(done) {
@@ -187,6 +209,7 @@ describe('ShellCommmand', function() {
     //----------------------------------
     // Asynchronous execution tests
     //----------------------------------
+
     describe('executing asynchronous commands', function() {
 
         it('should succeed', function(done) {
@@ -262,6 +285,7 @@ describe('ShellCommmand', function() {
     //----------------------------------
     // Parallel execution tests
     //----------------------------------
+
     describe('executing parallel commands', function() {
 
         it('should succeed', function(done) {
@@ -313,6 +337,30 @@ describe('ShellCommmand', function() {
                 );
         });
 
+        it('should close all if at least one fails', function(done) {
+            var outputQueue = [];
+
+            new ShellCommand()
+                .parallel(
+                    new Cmd(400, 'A', outputQueue),
+                    new Cmd(400, 'B', outputQueue),
+                    new Cmd(1, 'C', outputQueue, false)
+                )
+                .run()
+                .then(
+                    function() {
+                        // Should not get here.
+                        expect(false).toBe(true);
+                    },
+                    function() {
+                        expect(outputQueue[0]).toBe('C');
+                        expect(outputQueue[1]).toBe('close A');
+                        expect(outputQueue[2]).toBe('close B');
+                        done();
+                    }
+                );
+        });
+
         it('should be executed in order', function(done) {
             var outputQueue = [];
 
@@ -325,9 +373,9 @@ describe('ShellCommmand', function() {
                 .run()
                 .then(
                     function() {
-                        expect(outputQueue[0]).toBe('A');
-                        expect(outputQueue[1]).toBe('B');
-                        expect(outputQueue[2]).toBe('C');
+                        expect(outputQueue[0]).toBe('C');
+                        expect(outputQueue[1]).toBe('A');
+                        expect(outputQueue[2]).toBe('B');
                         done();
                     }
                 );
@@ -373,9 +421,9 @@ describe('ShellCommmand', function() {
                         expect(outputQueue[3]).toBe('D');
                         expect(outputQueue[4]).toBe('E');
                         expect(outputQueue[5]).toBe('F');
-                        expect(outputQueue[6]).toBe('G');
-                        expect(outputQueue[7]).toBe('H');
-                        expect(outputQueue[8]).toBe('I');
+                        expect(outputQueue[6]).toBe('I');
+                        expect(outputQueue[7]).toBe('G');
+                        expect(outputQueue[8]).toBe('H');
                         expect(outputQueue[9]).toBe('L');
                         expect(outputQueue[10]).toBe('J');
                         expect(outputQueue[11]).toBe('K');
