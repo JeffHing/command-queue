@@ -38,11 +38,6 @@ module.exports = ShellCommand;
  *    var nested = new ShellCommand().sync('script 4', 'script 5');
  *
  *    new ShellCommand()
- *        .parallel(
- *            'script 1',
- *            'script 2',
- *            'script 3',
- *        )
  *        .sync(
  *            'script 1',
  *            'script 2',
@@ -53,6 +48,11 @@ module.exports = ShellCommand;
  *            'script B',
  *            nested,
  *            'script C',
+ *        )
+ *        .parallel(
+ *            'script 1',
+ *            'script 2',
+ *            'script 3',
  *        )
  *        .run();
  */
@@ -108,18 +108,14 @@ proto.async = function() {
 };
 
 /*
- * Specifies that the commands should be run using parallelshell.
+ * Specifies that the commands should be run in parallel.
  *
  * @param [...(string|object)]
  * @return {object} The current ShellCommand instance.
  */
 proto.parallel = function() {
     var m = this[MODEL];
-    var args = ['parallelshell'];
-    for (var i = 0; i < arguments.length; i++) {
-        args.push(arguments[i]);
-    }
-    m.batchIt(m.runSync, args);
+    m.batchIt(m.runParallel, arguments);
     return this;
 };
 
@@ -130,27 +126,38 @@ proto.parallel = function() {
  */
 proto.run = function() {
     var m = this[MODEL];
-    var def = deferred();
+
+    m.runDeferred = deferred();
+    m.spawned = [];
 
     runNext(0);
 
-    return def.promise();
+    return m.runDeferred.promise;
 
     function runNext(index) {
         if (index < m.queue.length) {
             var batch = m.queue[index];
-            batch.func.call(m, batch.cmds)(
+            batch.func.call(m, batch.cmds).then(
                 function() {
                     runNext(index + 1);
                 },
                 function() {
-                    def.reject();
+                    m.runDeferred.reject();
                 }
             );
         } else {
-            def.resolve();
+            m.runDeferred.resolve();
         }
     }
+};
+
+/*
+ * Terminates all commands using SIGINT.
+ */
+proto.close = function() {
+    var m = this[MODEL];
+    m.close();
+    m.runDeferred.reject();
 };
 
 //-------------------------------------
@@ -161,11 +168,17 @@ proto.run = function() {
  * @constructor
  */
 function ShellCommandModel() {
-    // Queue of execution sets.
+    // Queue of batched commands.
     this.queue = [];
+
+    // Queue of spawned commands.
+    this.spawned = [];
 
     // Shell environment.
     this.env = extend({}, process.env);
+
+    // The deferred command returned by the run() method.
+    this.runDeferred = null;
 
     // Windows or Unix.
     if (process.platform === 'win32') {
@@ -204,11 +217,11 @@ modelProto.runSync = function(cmds) {
 
     runNext(0);
 
-    return def.promise();
+    return def.promise;
 
     function runNext(index) {
         if (index < cmds.length) {
-            self.runShell(cmds[index])(
+            self.runShell(cmds[index]).then(
                 function() {
                     runNext(index + 1);
                 },
@@ -237,6 +250,31 @@ modelProto.runAsync = function(cmds) {
 };
 
 /*
+ * Runs the commands in parallel.
+ *
+ * @param {array} cmds The array of commands to run.
+ * @return {object} A promise which is resolved when the commands complete.
+ */
+modelProto.runParallel = function(cmds) {
+    var self = this;
+
+    var promises = [];
+    for (var i = 0; i < cmds.length; i++) {
+        promises.push(this.runShell(cmds[i], true));
+    }
+    var def = deferred();
+    deferred.apply({}, promises).then(
+        function() {
+            def.resolve();
+        },
+        function() {
+            self.close();
+            def.reject();
+        });
+    return def.promise;
+};
+
+/*
  * Executes the command using a shell.
  *
  * @param {array|object} cmd
@@ -246,24 +284,32 @@ modelProto.runAsync = function(cmds) {
  * @return {object} A promise which is resolved when the command completes.
  */
 modelProto.runShell = function(cmd) {
-    if (cmd.run) {
+    var self = this;
+
+    //
+    // Run a ShellCommand instance.
+    //
+    if (isShellCommand(cmd)) {
+        self.spawned.push(cmd);
         return cmd.run();
     }
 
-    var args = [this.shellFlag],
-        def = deferred();
+    //
+    // Run a shell command.
+    //
+    var args = [self.shellFlag];
+    var def = deferred();
 
     // Add user command to args.
     args = args.concat(cmd);
 
-    /// Run command.
-    var spawn = childProcess.spawn(this.shellCmd, args, {
+    var child = childProcess.spawn(self.shellCmd, args, {
         cwd: process.cwd,
-        env: this.env,
+        env: self.env,
         stdio: ['pipe', process.stdout, process.stderr]
     });
 
-    spawn.on('close', function(code) {
+    child.on('close', function(code) {
         if (code === 0) {
             def.resolve();
         } else {
@@ -271,5 +317,30 @@ modelProto.runShell = function(cmd) {
         }
     });
 
-    return def.promise();
+    self.spawned.push(child);
+
+    return def.promise;
 };
+
+/*
+ * Closes all spawned processes using SIGINT.
+ */
+modelProto.close = function() {
+    for (var i = 0; i < this.spawned.length; i++) {
+        var child = this.spawned[i];
+        if (isShellCommand(child)) {
+            child[MODEL].close();
+        } else if (child.exitCode === null) {
+            child.removeAllListeners('close');
+            child.kill('SIGINT');
+        }
+    }
+};
+
+//-------------------------------------
+// Utility functions
+//-------------------------------------
+
+function isShellCommand(cmd) {
+    return cmd instanceof ShellCommand;
+}
