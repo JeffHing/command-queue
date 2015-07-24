@@ -1,2 +1,0 @@
-#!/bin/sh
-# Testing ShellCommand.path() can find this script on Unix.

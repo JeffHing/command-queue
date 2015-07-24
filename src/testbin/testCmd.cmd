@@ -1,1 +1,0 @@
-:: Testing ShellCommand.path() can find this script on Windows.

@@ -72,65 +72,6 @@ Cmd.prototype.run = function() {
 describe('ShellCommmand', function() {
 
     //----------------------------------
-    // Path tests
-    //----------------------------------
-
-    describe('adding directories to path using comma sep', function() {
-
-        it('should find commands', function(done) {
-            new ShellCommand()
-                .path(
-                    path.join(process.cwd(), 'src', 'testbin'),
-                    path.join(process.cwd(), 'src', 'testbin', 'more')
-                )
-                .sync('testCmd')
-                .sync('testMoreCmd')
-                .run()
-                .then(
-                    function() {
-                        done();
-                    }
-                );
-        });
-    });
-
-    describe('adding directories to path using chaining', function() {
-
-        it('should find commands', function(done) {
-            new ShellCommand()
-                .path(path.join(process.cwd(), 'src', 'testbin'))
-                .path(path.join(process.cwd(), 'src', 'testbin', 'more'))
-                .sync('testCmd')
-                .sync('testMoreCmd')
-                .run()
-                .then(
-                    function() {
-                        done();
-                    }
-                );
-        });
-    });
-
-    describe('adding directories to path using array', function() {
-
-        it('should find commands', function(done) {
-            new ShellCommand()
-                .path([
-                    path.join(process.cwd(), 'src', 'testbin'),
-                    path.join(process.cwd(), 'src', 'testbin', 'more')
-                ])
-                .sync('testCmd')
-                .sync('testMoreCmd')
-                .run()
-                .then(
-                    function() {
-                        done();
-                    }
-                );
-        });
-    });
-
-    //----------------------------------
     // Synchronous execution tests
     //----------------------------------
 

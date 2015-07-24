@@ -13,7 +13,6 @@
 
 var childProcess = require('child_process');
 var deferred = require('deferred');
-var extend = require('extend');
 
 // Private model name.
 var MODEL = '_shellCommand';
@@ -61,27 +60,6 @@ function ShellCommand() {
 }
 
 var proto = ShellCommand.prototype;
-
-/*
- * Adds the directory to the ShellCommand's PATH variable.
- *
- * @param [...string|array]
- * @return {object} The current ShellCommand instance.
- */
-proto.path = function() {
-    for (var i = 0; i < arguments.length; i++) {
-        var dir = arguments[i];
-        if (Array.isArray(dir)) {
-            for (var j = 0; j < dir.length; j++) {
-                this.path(dir[j]);
-            }
-        } else {
-            var m = this[MODEL];
-            m.env.PATH = dir + ';' + m.env.PATH;
-        }
-    }
-    return this;
-};
 
 /*
  * Specifies that the commands should be run synchronously.
@@ -173,9 +151,6 @@ function ShellCommandModel() {
 
     // Queue of spawned commands.
     this.spawned = [];
-
-    // Shell environment.
-    this.env = extend({}, process.env);
 
     // The deferred command returned by the run() method.
     this.runDeferred = null;
@@ -305,7 +280,7 @@ modelProto.runShell = function(cmd) {
 
     var child = childProcess.spawn(self.shellCmd, args, {
         cwd: process.cwd,
-        env: self.env,
+        env: process.env,
         stdio: ['pipe', process.stdout, process.stderr]
     });
 
