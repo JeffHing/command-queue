@@ -271,7 +271,13 @@ modelProto.runShell = function(cmd) {
         stdio: ['pipe', process.stdout, process.stderr]
     });
 
+    var childData = {
+        process: childProcess,
+        closed: false
+    };
+
     childProcess.on('close', function(code) {
+        childData.closed = true;
         if (code === 0) {
             def.resolve();
         } else {
@@ -279,10 +285,7 @@ modelProto.runShell = function(cmd) {
         }
     });
 
-    self.children.push({
-        process: childProcess,
-        killed: false
-    });
+    self.children.push(childData);
 
     return def.promise;
 };
@@ -295,10 +298,10 @@ modelProto.close = function() {
         var childData = this.children[i];
         if (isShellCommand(childData)) {
             childData[MODEL].close();
-        } else if (!childData.killed) {
+        } else if (!childData.closed) {
             childData.process.removeAllListeners('close');
             childData.process.kill('SIGINT');
-            childData.killed = true;
+            childData.closed = true;
         }
     }
 };
@@ -310,7 +313,7 @@ modelProto.areAllClosed = function() {
     for (var i = 0; i < this.children.length; i++) {
         var childData = this.children[i];
         if (!isShellCommand(childData)) {
-            if (!childData.killed) {
+            if (!childData.closed) {
                 return false;
             }
         }
