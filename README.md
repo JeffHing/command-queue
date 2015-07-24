@@ -14,30 +14,29 @@ managing complex build steps.
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
-    - [Path](#path)
     - [Synchronous Execution](#synchronous-execution)
     - [Asynchronous Execution](#Asynchronous-execution)
     - [Parallel Execution](#Parallel-execution)
     - [Batched Execution](#Batched-execution)
     - [Nested Execution](#Nested-execution)
     - [Run](#run)
-    - [Run Command](#run)
+    - [Run Command Customization](#run-command-customization)
 
 ## Features
 
 * Flexible combinations of synchronous and asynchronous execution.
-* Full customization of how a command is executed.
+* Fully customize how a command is executed.
 
 ## Installation
 
 To install the package:
 
-    npm install shell-command
+    npm install command-queue
     
 To require the package:    
 
 ```javascript
-var CommandQueue = require("shell-command");
+var CommandQueue = require("command-queue");
 ```    
 ## Usage
 
@@ -152,7 +151,7 @@ new CommandQueue()
     );
 ```    
 
-### Run Command
+### Run Command Customization
 
 How a command is run, is fully customizable by replacing or overriding
 the `CommandQueue.prototype.runCommand()` method with your own method.
