@@ -61,7 +61,7 @@ function CommandQueue() {
 }
 
 /*
- * Runs a command. It is intended to be replaceable to customize
+ * Runs a command. This function is intended to be replaceable to customize
  * the child creation process.
  *
  * @param {'sync'|'async'|'parallel'} runType
