@@ -134,11 +134,11 @@ proto.run = function() {
  * Runs a command. This function is intended to be user replaceable
  * to customize the child creation process.
  *
- * @param {'sync'|'async'|'parallel'} runType
  * @param {string|object} cmd The user provided command to run.
+ * @param {'sync'|'async'|'parallel'} runType
  * @returns {object} The child process.
  */
-proto.runCommand = function(runType, cmd) {
+proto.runCommand = function(cmd) {
     var args = parse(cmd);
     var filename = args.shift();
 
@@ -212,7 +212,7 @@ modelProto.runSync = function(cmds) {
 
     function runNext(index) {
         if (index < cmds.length) {
-            self.runCommand('sync', cmds[index]).then(
+            self.runCommand(cmds[index], 'sync').then(
                 function() {
                     runNext(index + 1);
                 },
@@ -235,7 +235,7 @@ modelProto.runSync = function(cmds) {
 modelProto.runAsync = function(cmds) {
     var promises = [];
     for (var i = 0; i < cmds.length; i++) {
-        promises.push(this.runCommand('async', cmds[i]));
+        promises.push(this.runCommand(cmds[i], 'async'));
     }
     return deferred.apply({}, promises);
 };
@@ -251,7 +251,7 @@ modelProto.runParallel = function(cmds) {
 
     var promises = [];
     for (var i = 0; i < cmds.length; i++) {
-        promises.push(this.runCommand('parallel', cmds[i]));
+        promises.push(this.runCommand(cmds[i], 'parallel'));
     }
     var def = deferred();
     deferred.apply({}, promises).then(
@@ -268,11 +268,11 @@ modelProto.runParallel = function(cmds) {
 /*
  * Runs the command.
  *
- * @param {'sync'|'async'|'parallel'} runType
  * @param {string|CommandQueue} cmd
+ * @param {'sync'|'async'|'parallel'} runType
  * @return {object} A promise which is resolved when the command completes.
  */
-modelProto.runCommand = function(runType, cmd) {
+modelProto.runCommand = function(cmd, runType) {
     var self = this;
 
     //
@@ -286,7 +286,7 @@ modelProto.runCommand = function(runType, cmd) {
     //
     // Run a command.
     //
-    var childProcess = this.commandQueueInstance.runCommand(runType, cmd);
+    var childProcess = this.commandQueueInstance.runCommand(cmd, runType);
 
     var child = {
         process: childProcess,

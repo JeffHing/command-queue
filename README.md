@@ -164,11 +164,11 @@ Here is the default method:
  * Runs a command. This function is intended to be replaceable to customize
  * the child creation process.
  *
- * @param {'sync'|'async'|'parallel'} runType
  * @param {string|object} cmd The user provided command to run.
+ * @param {'sync'|'async'|'parallel'} runType
  * @returns {object} The child process.
  */
-CommandQueue.prototype.runCommand = function(runType, cmd) {
+CommandQueue.prototype.runCommand = function(cmd, runType) {
     var args = parse(cmd);
     var filename = args.shift();
 
@@ -187,7 +187,7 @@ existing runCommand() method:
 
 ```javascript
 var queue = new CommandQueue();
-queue.runCommand = function(runType, cmd) {
+queue.runCommand = function(cmd, runType) {
     ...
 };
 ```
@@ -201,7 +201,7 @@ For example:
 ```javascript
 var queue = new CommandQueue();
 
-queue.runCommand = function(runType, cmd) {
+queue.runCommand = function(cmd, runType) {
     console.log('runType: ' + cmd.message);
     var childProcess =  exec(cmd.nodeCmd, ...);
     return childProcess;

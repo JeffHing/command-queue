@@ -491,12 +491,12 @@ describe('CommandQueue', function() {
 
     describe('replacing runCommand() method', function() {
 
-        it('should foo', function() {
+        it('should output correct runTypes and messages', function() {
             var outputQueue = [];
 
             var queue = new CommandQueue();
-            queue.runCommand = function(runType, cmd) {
-                outputQueue.push('runType:' + cmd.message);
+            queue.runCommand = function(cmd, runType) {
+                outputQueue.push(runType + ':' + cmd.message);
 
                 var childProcess = exec(cmd.cmd, {
                     cwd: process.cwd,
@@ -510,9 +510,30 @@ describe('CommandQueue', function() {
             queue.async({
                 message: 'hello',
                 cmd: nodeCmd
-            }).run();
+            });
 
-            expect(outputQueue[0]).toBe('runType:hello');
+            queue.sync({
+                message: 'goodbye',
+                cmd: nodeCmd
+            });
+
+            queue.parallel({
+                message: 'later',
+                cmd: nodeCmd
+            });
+
+            queue.run(
+                function() {
+                    expect(outputQueue[0]).toBe('async:hello');
+                    expect(outputQueue[1]).toBe('sync:goodbye');
+                    expect(outputQueue[2]).toBe('parallel:later');
+                },
+                function() {
+                    // Should not get here.
+                    expect(false).toBe(true);
+                }
+            );
+
         });
     });
 });
