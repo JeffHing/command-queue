@@ -13,6 +13,7 @@
 
 var CommandQueue = require('./CommandQueue');
 var deferred = require('deferred');
+var exec = require('child_process').exec;
 
 //
 // Commands for testing.
@@ -481,6 +482,37 @@ describe('CommandQueue', function() {
                 );
 
             commandQueue.close();
+        });
+    });
+
+    //----------------------------------
+    // Replace runCommand() method.
+    //----------------------------------
+
+    describe('replacing runCommand() method', function() {
+
+        it('should foo', function() {
+            var outputQueue = [];
+
+            var queue = new CommandQueue();
+            queue.runCommand = function(runType, cmd) {
+                outputQueue.push('runType:' + cmd.message);
+
+                var childProcess = exec(cmd.cmd, {
+                    cwd: process.cwd,
+                    env: process.env,
+                    stdio: ['pipe', process.stdout, process.stderr]
+                });
+
+                return childProcess;
+            };
+
+            queue.async({
+                message: 'hello',
+                cmd: nodeCmd
+            }).run();
+
+            expect(outputQueue[0]).toBe('runType:hello');
         });
     });
 });

@@ -182,7 +182,7 @@ CommandQueue.prototype.runCommand = function(runType, cmd) {
 };
 ```
 
-To customize how a command is run, per instance, override the
+To customize how a command is run per instance, override the
 existing runCommand() method:
 
 ```javascript
@@ -192,9 +192,9 @@ queue.runCommand = function(runType, cmd) {
 };
 ```
 
-By replacing the `runCommand()` method, you can change not only how a 
-command is run, but also change what types of user arguments are supported 
-by the `.async()`, `sync()`, and `.parallel()` methods.
+By replacing the `runCommand()` method, you can also change what types of 
+user arguments are supported by the `.async()`, `sync()`, 
+and `.parallel()` methods.
 
 For example:
 
@@ -203,20 +203,15 @@ var queue = new CommandQueue();
 
 queue.runCommand = function(runType, cmd) {
     console.log('runType: ' + cmd.message);
+    var childProcess =  exec(cmd.nodeCmd, ...);
+    return childProcess;
 };
 
 queue
-    .sync(
-        {message: 'hello'}
-        {message: 'goodbye'}
-        {message: 'later'}
-    )
+    .sync({
+        message: 'hello',
+        nodeCmd: 'node foobar.js'
+    })
     .run();
 
-```
-
-```javascript
-CommandQueue.runCommand = function(runType, cmd) {
-    console.log('runType: ' + cmd.message);
-}
 ```
