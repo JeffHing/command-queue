@@ -11,7 +11,7 @@
 // Module dependencies and variables
 //-------------------------------------
 
-var childProcess = require('child_process');
+var exec = require('child_process').exec;
 var deferred = require('deferred');
 
 // Private model name.
@@ -106,7 +106,7 @@ proto.run = function() {
     var m = this[MODEL];
 
     m.runDeferred = deferred();
-    m.spawned = [];
+    m.children = [];
 
     runNext(0);
 
@@ -149,8 +149,8 @@ function ShellCommandModel() {
     // Queue of batched commands.
     this.queue = [];
 
-    // Queue of spawned commands.
-    this.spawned = [];
+    // Children processes.
+    this.children = [];
 
     // The deferred command returned by the run() method.
     this.runDeferred = null;
@@ -256,7 +256,7 @@ modelProto.runShell = function(cmd) {
     // Run a ShellCommand instance.
     //
     if (isShellCommand(cmd)) {
-        self.spawned.push(cmd);
+        self.children.push(cmd);
         return cmd.run();
     }
 
@@ -265,13 +265,13 @@ modelProto.runShell = function(cmd) {
     //
     var def = deferred();
 
-    var child = childProcess.exec(cmd, {
+    var childProcess = exec(cmd, {
         cwd: process.cwd,
         env: process.env,
         stdio: ['pipe', process.stdout, process.stderr]
     });
 
-    child.on('close', function(code) {
+    childProcess.on('close', function(code) {
         if (code === 0) {
             def.resolve();
         } else {
@@ -279,22 +279,26 @@ modelProto.runShell = function(cmd) {
         }
     });
 
-    self.spawned.push(child);
+    self.children.push({
+        process: childProcess,
+        killed: false
+    });
 
     return def.promise;
 };
 
 /*
- * Closes all spawned processes using SIGINT.
+ * Closes all children processes using SIGINT.
  */
 modelProto.close = function() {
-    for (var i = 0; i < this.spawned.length; i++) {
-        var child = this.spawned[i];
-        if (isShellCommand(child)) {
-            child[MODEL].close();
-        } else if (child.exitCode === null) {
-            child.removeAllListeners('close');
-            child.kill('SIGINT');
+    for (var i = 0; i < this.children.length; i++) {
+        var childData = this.children[i];
+        if (isShellCommand(childData)) {
+            childData[MODEL].close();
+        } else if (!childData.killed) {
+            childData.process.removeAllListeners('close');
+            childData.process.kill('SIGINT');
+            childData.killed = true;
         }
     }
 };
@@ -303,10 +307,10 @@ modelProto.close = function() {
  * Used for testing only.
  */
 modelProto.areAllClosed = function() {
-    for (var i = 0; i < this.spawned.length; i++) {
-        var child = this.spawned[i];
-        if (!isShellCommand(child)) {
-            if (child.existCode === null) {
+    for (var i = 0; i < this.children.length; i++) {
+        var childData = this.children[i];
+        if (!isShellCommand(childData)) {
+            if (!childData.killed) {
                 return false;
             }
         }
@@ -318,6 +322,6 @@ modelProto.areAllClosed = function() {
 // Utility functions
 //-------------------------------------
 
-function isShellCommand(cmd) {
-    return cmd instanceof ShellCommand;
+function isShellCommand(child) {
+    return child instanceof ShellCommand;
 }

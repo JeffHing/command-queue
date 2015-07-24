@@ -379,7 +379,7 @@ describe('ShellCommmand', function() {
     // Nested execution tests
     //----------------------------------
 
-    describe('nest sync within async', function() {
+    describe('nesting sync within async', function() {
 
         it('should be executed in the correct order', function(done) {
             var outputQueue = [];
@@ -411,7 +411,7 @@ describe('ShellCommmand', function() {
         });
     });
 
-    describe('nest async within sync', function() {
+    describe('nesting async within sync', function() {
 
         it('should be executed in the correct order', function(done) {
             var outputQueue = [];
@@ -442,4 +442,43 @@ describe('ShellCommmand', function() {
                 );
         });
     });
+
+    //----------------------------------
+    // Close execution tests
+    //----------------------------------
+
+    describe('calling close() method', function() {
+
+        it('should close all', function(done) {
+            var outputQueue = [];
+            var commandQueue = new ShellCommand();
+
+            commandQueue
+                .parallel(
+                    new Cmd(400, 'A', outputQueue),
+                    new Cmd(400, 'B', outputQueue),
+                    nodeCmdDelay,
+                    nodeCmdDelay,
+                    nodeCmdDelay
+                )
+                .run()
+                .then(
+                    function() {
+                        // Should not get here.
+                        expect(false).toBe(true);
+                    },
+                    function() {
+                        expect(outputQueue[0]).toBe('close A');
+                        expect(outputQueue[1]).toBe('close B');
+                        expect(commandQueue._shellCommand.areAllClosed())
+                            .toBe(true);
+                        done();
+                    }
+                );
+
+            commandQueue.close();
+        });
+
+    });
+
 });
