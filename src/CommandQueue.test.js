@@ -3,7 +3,7 @@
  *
  * MIT License
  *
- * Unit tests for ShellCommand.
+ * Unit tests for CommandQueue.
  */
 'use strict';
 
@@ -11,18 +11,18 @@
 // Module dependencies and variables
 //----------------------------------
 
-var ShellCommand = require('./ShellCommand');
+var CommandQueue = require('./CommandQueue');
 var deferred = require('deferred');
 
 //
-// Commands for testing actual shell processes.
+// Commands for testing.
 //
 var nodeCmd = 'node -e "setTimeout(function(){},10);"';
-var nodeCmdDelay = 'node -e "setTimeout(function(){},400);"';
-var nodeCmdFail = 'node -e "throw new Error(\"someError\");"';
+var nodeCmdDelay = 'node -e "setTimeout(function(){},3000);"';
+var nodeCmdFail = 'node -e "process.exit(1);"';
 
 /*
- * A ShellCommand used for testing basic logic.
+ * A CommandQueue used for testing basic logic.
  *
  * @constructor
  */
@@ -34,14 +34,14 @@ function Cmd(delay, id, outputQueue, succeed) {
     self._succeed = succeed !== undefined ? succeed : true;
 
     // Override private model's close function
-    self._shellCommand = {};
-    self._shellCommand.close = function() {
+    self._commandQueue = {};
+    self._commandQueue.close = function() {
         self._outputQueue.push('close ' + self._id);
     };
 }
 
-// Pass the "instanceof ShellCommand" test.
-Cmd.prototype = Object.create(ShellCommand.prototype);
+// Pass the "instanceof CommandQueue" test.
+Cmd.prototype = Object.create(CommandQueue.prototype);
 
 Cmd.prototype.constructor = Cmd;
 
@@ -66,7 +66,7 @@ Cmd.prototype.run = function() {
 // Unit Tests
 //----------------------------------
 
-describe('ShellCommmand', function() {
+describe('CommandQueue', function() {
 
     //----------------------------------
     // Synchronous execution tests
@@ -75,7 +75,7 @@ describe('ShellCommmand', function() {
     describe('executing synchronous commands', function() {
 
         it('should succeed', function(done) {
-            new ShellCommand()
+            new CommandQueue()
                 .sync(nodeCmd)
                 .run()
                 .then(
@@ -90,7 +90,7 @@ describe('ShellCommmand', function() {
         });
 
         it('should fail', function(done) {
-            new ShellCommand()
+            new CommandQueue()
                 .sync(nodeCmdFail)
                 .run()
                 .then(
@@ -105,7 +105,7 @@ describe('ShellCommmand', function() {
         });
 
         it('should fail if at least one fails', function(done) {
-            new ShellCommand()
+            new CommandQueue()
                 .sync(
                     nodeCmd,
                     nodeCmdFail,
@@ -126,7 +126,7 @@ describe('ShellCommmand', function() {
         it('should be executed in order', function(done) {
             var outputQueue = [];
 
-            new ShellCommand()
+            new CommandQueue()
                 .sync(
                     new Cmd(400, 'A', outputQueue),
                     new Cmd(1, 'B', outputQueue),
@@ -151,7 +151,7 @@ describe('ShellCommmand', function() {
     describe('executing asynchronous commands', function() {
 
         it('should succeed', function(done) {
-            new ShellCommand()
+            new CommandQueue()
                 .async(nodeCmd)
                 .run()
                 .then(
@@ -166,7 +166,7 @@ describe('ShellCommmand', function() {
         });
 
         it('should fail', function(done) {
-            new ShellCommand()
+            new CommandQueue()
                 .async(nodeCmdFail)
                 .run()
                 .then(
@@ -181,7 +181,7 @@ describe('ShellCommmand', function() {
         });
 
         it('should fail if at least one fails', function(done) {
-            new ShellCommand()
+            new CommandQueue()
                 .async(
                     nodeCmd,
                     nodeCmdFail,
@@ -202,7 +202,7 @@ describe('ShellCommmand', function() {
         it('should be executed in order of completion', function(done) {
             var outputQueue = [];
 
-            new ShellCommand()
+            new CommandQueue()
                 .async(
                     new Cmd(200, 'A', outputQueue),
                     new Cmd(400, 'B', outputQueue),
@@ -227,7 +227,7 @@ describe('ShellCommmand', function() {
     describe('executing parallel commands', function() {
 
         it('should succeed', function(done) {
-            new ShellCommand()
+            new CommandQueue()
                 .parallel(nodeCmd)
                 .run()
                 .then(
@@ -242,7 +242,7 @@ describe('ShellCommmand', function() {
         });
 
         it('should fail', function(done) {
-            new ShellCommand()
+            new CommandQueue()
                 .parallel(nodeCmdFail)
                 .run()
                 .then(
@@ -257,7 +257,7 @@ describe('ShellCommmand', function() {
         });
 
         it('should fail if at least one fails', function(done) {
-            new ShellCommand()
+            new CommandQueue()
                 .parallel(
                     nodeCmd,
                     nodeCmdFail,
@@ -277,7 +277,7 @@ describe('ShellCommmand', function() {
 
         it('should close all if at least one fails', function(done) {
             var outputQueue = [];
-            var commandQueue = new ShellCommand();
+            var commandQueue = new CommandQueue();
 
             commandQueue
                 .parallel(
@@ -294,11 +294,13 @@ describe('ShellCommmand', function() {
                         expect(false).toBe(true);
                     },
                     function() {
-                        expect(outputQueue[0]).toBe('close A');
-                        expect(outputQueue[1]).toBe('close B');
-                        expect(commandQueue._shellCommand.areAllClosed())
-                            .toBe(true);
-                        done();
+                        setTimeout(function() {
+                            expect(outputQueue[0]).toBe('close A');
+                            expect(outputQueue[1]).toBe('close B');
+                            expect(commandQueue._commandQueue.areAllClosed())
+                                .toBe(true);
+                            done();
+                        }, 500);
                     }
                 );
         });
@@ -306,7 +308,7 @@ describe('ShellCommmand', function() {
         it('should be executed in order', function(done) {
             var outputQueue = [];
 
-            new ShellCommand()
+            new CommandQueue()
                 .parallel(
                     new Cmd(200, 'A', outputQueue),
                     new Cmd(400, 'B', outputQueue),
@@ -333,7 +335,7 @@ describe('ShellCommmand', function() {
         it('should be executed in the correct order', function(done) {
             var outputQueue = [];
 
-            new ShellCommand()
+            new CommandQueue()
                 .async(
                     new Cmd(200, 'A', outputQueue),
                     new Cmd(400, 'B', outputQueue),
@@ -384,14 +386,14 @@ describe('ShellCommmand', function() {
         it('should be executed in the correct order', function(done) {
             var outputQueue = [];
 
-            var syncCmds = new ShellCommand()
+            var syncCmds = new CommandQueue()
                 .sync(
                     new Cmd(200, 'C1', outputQueue),
                     new Cmd(1, 'C2', outputQueue),
                     new Cmd(1, 'C3', outputQueue)
                 );
 
-            new ShellCommand()
+            new CommandQueue()
                 .async(
                     new Cmd(1, 'A', outputQueue),
                     syncCmds,
@@ -416,14 +418,14 @@ describe('ShellCommmand', function() {
         it('should be executed in the correct order', function(done) {
             var outputQueue = [];
 
-            var asyncCmds = new ShellCommand()
+            var asyncCmds = new CommandQueue()
                 .async(
                     new Cmd(200, 'C1', outputQueue),
                     new Cmd(400, 'C2', outputQueue),
                     new Cmd(1, 'C3', outputQueue)
                 );
 
-            new ShellCommand()
+            new CommandQueue()
                 .sync(
                     new Cmd(1, 'A', outputQueue),
                     asyncCmds,
@@ -451,7 +453,7 @@ describe('ShellCommmand', function() {
 
         it('should close all', function(done) {
             var outputQueue = [];
-            var commandQueue = new ShellCommand();
+            var commandQueue = new CommandQueue();
 
             commandQueue
                 .parallel(
@@ -468,17 +470,17 @@ describe('ShellCommmand', function() {
                         expect(false).toBe(true);
                     },
                     function() {
-                        expect(outputQueue[0]).toBe('close A');
-                        expect(outputQueue[1]).toBe('close B');
-                        expect(commandQueue._shellCommand.areAllClosed())
-                            .toBe(true);
-                        done();
+                        setTimeout(function() {
+                            expect(outputQueue[0]).toBe('close A');
+                            expect(outputQueue[1]).toBe('close B');
+                            expect(commandQueue._commandQueue.areAllClosed())
+                                .toBe(true);
+                            done();
+                        }, 500);
                     }
                 );
 
             commandQueue.close();
         });
-
     });
-
 });

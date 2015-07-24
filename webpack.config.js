@@ -13,7 +13,7 @@
 
 module.exports = {
 
-    entry: './src/ShellCommand.js',
+    entry: './src/CommandQueue.js',
 
     eslint: {
         failOnError: false

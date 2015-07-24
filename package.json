@@ -1,16 +1,16 @@
 {
-  "name": "shell-command",
-  "main": "./src/ShellCommand.js",
+  "name": "command-queue",
+  "main": "./src/CommandQueue.js",
   "version": "0.1.0",
-  "description": "A programmatic API for executing groups of shell commands synchronously or asynchronously.",
+  "description": "A programmatic API for running groups of commands synchronously or asynchronously.",
   "keywords": [
-    "shell",
-    "command",
-    "synchronous",
     "asynchronous",
-    "parallel"
+    "command",
+    "parallel",
+    "run",
+    "synchronous"
   ],
-  "homepage": "https://github.com/JeffHing/shell-command",
+  "homepage": "https://github.com/JeffHing/command-queue",
   "license": "MIT",
   "author": {
     "name": "Jeffrey Hing",
@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/JeffHing/shell-command.git"
+    "url": "https://github.com/JeffHing/command-queue.git"
   },
   "dependencies": {
     "deferred": "^0.7.2"
@@ -29,10 +29,11 @@
     "jasmine-node": "^1.14.5",
     "node-libs-browser": "^0.5.2",
     "parallelshell": "^1.2.0",
+    "parse-spawn-args": "^1.0.2",
     "webpack": "^1.10.1"
   },
   "scripts": {
-    "dev": "parallelshell \"webpack --watch\" \"jasmine-node src/ShellCommand.test.js --color --matchall --autotest --watch src/ShellCommand.js\"",
-    "test": "jasmine-node src/ShellCommand.test.js --color --matchall"
+    "dev": "parallelshell \"webpack --watch\" \"jasmine-node src/CommandQueue.test.js --color --matchall --autotest --watch src/CommandQueue.js\"",
+    "test": "jasmine-node src/CommandQueue.test.js --color --matchall"
   }
 }

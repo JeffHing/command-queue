@@ -3,7 +3,7 @@
  *
  * MIT License
  *
- * Run shell commands.
+ * Runs groups of commands synchronously or asynchronously.
  */
 'use strict';
 
@@ -11,32 +11,33 @@
 // Module dependencies and variables
 //-------------------------------------
 
-var exec = require('child_process').exec;
+var spawn = require('child_process').spawn;
 var deferred = require('deferred');
+var parse = require('parse-spawn-args').parse;
 
 // Private model name.
-var MODEL = '_shellCommand';
+var MODEL = '_commandQueue';
 
 //-------------------------------------
 // Module exports
 //-------------------------------------
 
-module.exports = ShellCommand;
+module.exports = CommandQueue;
 
 //-------------------------------------
-// Shell Command
+// Command Queue
 //-------------------------------------
 
 /*
- * ShellCommand provides a programmatic API for executing groups of shell
+ * CommandQueue provides a programmatic API for running groups of
  * commands synchronously or asynchronously.
  *
  * @constructor
  *
  * @example
- *    var nested = new ShellCommand().sync('script 4', 'script 5');
+ *    var nested = new CommandQueue().sync('script 4', 'script 5');
  *
- *    new ShellCommand()
+ *    new CommandQueue()
  *        .sync(
  *            'script 1',
  *            'script 2',
@@ -55,45 +56,45 @@ module.exports = ShellCommand;
  *        )
  *        .run();
  */
-function ShellCommand() {
-    this[MODEL] = new ShellCommandModel();
+function CommandQueue() {
+    this[MODEL] = new CommandQueueModel();
 }
 
-var proto = ShellCommand.prototype;
+var proto = CommandQueue.prototype;
 
 /*
  * Specifies that the commands should be run synchronously.
  *
- * @param [...(string|object)]
- * @return {object} The current ShellCommand instance.
+ * @param [...(string|CommandQueue)]
+ * @return {object} The current CommandQueue instance.
  */
 proto.sync = function() {
     var m = this[MODEL];
-    m.batchIt(m.runSync, arguments);
+    m.batch(m.runSync, arguments);
     return this;
 };
 
 /*
  * Specifies that the commands should be run asynchronously.
  *
- * @param [...(string|object)]
- * @return {object} The current ShellCommand instance.
+ * @param [...(string|CommandQueue]
+ * @return {object} The current CommandQueue instance.
  */
 proto.async = function() {
     var m = this[MODEL];
-    m.batchIt(m.runAsync, arguments);
+    m.batch(m.runAsync, arguments);
     return this;
 };
 
 /*
  * Specifies that the commands should be run in parallel.
  *
- * @param [...(string|object)]
- * @return {object} The current ShellCommand instance.
+ * @param [...(string|CommandQueue)]
+ * @return {object} The current CommandQueue instance.
  */
 proto.parallel = function() {
     var m = this[MODEL];
-    m.batchIt(m.runParallel, arguments);
+    m.batch(m.runParallel, arguments);
     return this;
 };
 
@@ -139,13 +140,13 @@ proto.close = function() {
 };
 
 //-------------------------------------
-// Shell Command's private model
+// CommandQueue's private model
 //-------------------------------------
 
 /*
  * @constructor
  */
-function ShellCommandModel() {
+function CommandQueueModel() {
     // Queue of batched commands.
     this.queue = [];
 
@@ -156,15 +157,15 @@ function ShellCommandModel() {
     this.runDeferred = null;
 }
 
-var modelProto = ShellCommandModel.prototype;
+var modelProto = CommandQueueModel.prototype;
 
 /*
  * Batches a set of commands.
  *
- * @param {function} func The ShellCommandModel function to run the commands.
+ * @param {function} func The CommandQueueModel function to run the commands.
  * @param {array} funcArgs The commands to pass to the function.
  */
-modelProto.batchIt = function(func, cmds) {
+modelProto.batch = function(func, cmds) {
     this.queue.push({
         func: func,
         cmds: cmds
@@ -187,7 +188,7 @@ modelProto.runSync = function(cmds) {
 
     function runNext(index) {
         if (index < cmds.length) {
-            self.runShell(cmds[index]).then(
+            self.runCommand(cmds[index]).then(
                 function() {
                     runNext(index + 1);
                 },
@@ -210,7 +211,7 @@ modelProto.runSync = function(cmds) {
 modelProto.runAsync = function(cmds) {
     var promises = [];
     for (var i = 0; i < cmds.length; i++) {
-        promises.push(this.runShell(cmds[i]));
+        promises.push(this.runCommand(cmds[i]));
     }
     return deferred.apply({}, promises);
 };
@@ -226,7 +227,7 @@ modelProto.runParallel = function(cmds) {
 
     var promises = [];
     for (var i = 0; i < cmds.length; i++) {
-        promises.push(this.runShell(cmds[i], true));
+        promises.push(this.runCommand(cmds[i], true));
     }
     var def = deferred();
     deferred.apply({}, promises).then(
@@ -241,43 +242,42 @@ modelProto.runParallel = function(cmds) {
 };
 
 /*
- * Executes the command using a shell.
+ * Runs the command.
  *
- * @param {array|object} cmd
- *    If the argument has a .run() method, it is called instead. It
- *    is assumed that the .run() method will return a promise which
- *    is resolved when the execution completes.
+ * @param {string|CommandQueue} cmd
  * @return {object} A promise which is resolved when the command completes.
  */
-modelProto.runShell = function(cmd) {
+modelProto.runCommand = function(cmd) {
     var self = this;
 
     //
-    // Run a ShellCommand instance.
+    // Run a CommandQueue instance.
     //
-    if (isShellCommand(cmd)) {
+    if (isCommandQueue(cmd)) {
         self.children.push(cmd);
         return cmd.run();
     }
 
     //
-    // Run a shell command.
+    // Run a command.
     //
     var def = deferred();
+    var args = parse(cmd);
+    var filename = args.shift();
 
-    var childProcess = exec(cmd, {
+    var childProcess = spawn(filename, args, {
         cwd: process.cwd,
         env: process.env,
         stdio: ['pipe', process.stdout, process.stderr]
     });
 
-    var childData = {
+    var child = {
         process: childProcess,
         closed: false
     };
 
     childProcess.on('close', function(code) {
-        childData.closed = true;
+        child.closed = true;
         if (code === 0) {
             def.resolve();
         } else {
@@ -285,7 +285,7 @@ modelProto.runShell = function(cmd) {
         }
     });
 
-    self.children.push(childData);
+    self.children.push(child);
 
     return def.promise;
 };
@@ -295,25 +295,24 @@ modelProto.runShell = function(cmd) {
  */
 modelProto.close = function() {
     for (var i = 0; i < this.children.length; i++) {
-        var childData = this.children[i];
-        if (isShellCommand(childData)) {
-            childData[MODEL].close();
-        } else if (!childData.closed) {
-            childData.process.removeAllListeners('close');
-            childData.process.kill('SIGINT');
-            childData.closed = true;
+        var child = this.children[i];
+        if (isCommandQueue(child)) {
+            child[MODEL].close();
+        } else if (!child.closed) {
+            child.process.kill('SIGINT');
         }
     }
 };
 
 /*
- * Used for testing only.
+ * Used for testing only. This should be called
+ * with a delay to allow for children to be killed.
  */
 modelProto.areAllClosed = function() {
     for (var i = 0; i < this.children.length; i++) {
-        var childData = this.children[i];
-        if (!isShellCommand(childData)) {
-            if (!childData.closed) {
+        var child = this.children[i];
+        if (!isCommandQueue(child)) {
+            if (!child.closed) {
                 return false;
             }
         }
@@ -325,6 +324,6 @@ modelProto.areAllClosed = function() {
 // Utility functions
 //-------------------------------------
 
-function isShellCommand(child) {
-    return child instanceof ShellCommand;
+function isCommandQueue(child) {
+    return child instanceof CommandQueue;
 }
