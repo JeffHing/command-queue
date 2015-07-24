@@ -2,7 +2,7 @@
   "name": "command-queue",
   "main": "./src/CommandQueue.js",
   "version": "0.1.0",
-  "description": "A programmatic API for running groups of commands synchronously or asynchronously.",
+  "description": "A programmatic API for executing groups of commands synchronously or asynchronously.",
   "keywords": [
     "asynchronous",
     "command",
@@ -21,7 +21,8 @@
     "url": "https://github.com/JeffHing/command-queue.git"
   },
   "dependencies": {
-    "deferred": "^0.7.2"
+    "deferred": "^0.7.2",
+    "parse-spawn-args": "^1.0.2"
   },
   "devDependencies": {
     "eslint": "^0.23.0",
@@ -29,7 +30,6 @@
     "jasmine-node": "^1.14.5",
     "node-libs-browser": "^0.5.2",
     "parallelshell": "^1.2.0",
-    "parse-spawn-args": "^1.0.2",
     "webpack": "^1.10.1"
   },
   "scripts": {
