@@ -1,12 +1,12 @@
 <!-- Copyright 2015. Author: Jeffrey Hing. All Rights Reserved. MIT License -->  
 
-# ShellCommand
+# CommandQueue
 
-ShellCommand provides a programmatic API for executing groups of shell 
+CommandQueue provides a programmatic API for executing groups of
 commands synchronously or asynchronously. It was originally created to
 provide an alternative to using the "scripts" object in package.json for 
-executing shell commands. By using ShellCommand, you can easily execute 
-shell commands from a JavaScript file instead, which is better suited for 
+executing commands. By using CommandQueue, you can easily execute 
+commands from a JavaScript file instead, which is better suited for 
 managing complex build steps.
 
 ## Table of Contents
@@ -24,9 +24,8 @@ managing complex build steps.
 
 ## Features
 
-* A flexible API for supporting different combinations of synchronous
-and asynchronous execution.
-* Supports [Parallel Shell](https://www.npmjs.com/package/parallelshell).
+* Flexible combinations of synchronous and asynchronous execution.
+* Full customization of how a command is executed.
 
 ## Installation
 
@@ -37,50 +36,16 @@ To install the package:
 To require the package:    
 
 ```javascript
-var ShellCommand = require("shell-command");
+var CommandQueue = require("shell-command");
 ```    
 ## Usage
 
-### Path
-
-Commands are executed using the current
-[process.env](https://nodejs.org/api/process.html#process_process_env),
-which also contains the PATH variable used to search for commands.
-
-To add additional search directories, use the `.path()` method:
-
-```javascript
-new ShellCommand()
-    .path(
-        './node_modules/.bin',
-        './myScripts'
-    )
-    ...
-```
-
-Directories can also be added using chained calls:
-
-```javascript
-new ShellCommand()
-    .path('./node_modules/.bin')
-    .path('./myScripts')
-    ...
-```
-
-Or arrays:
-
-```javascript
-new ShellCommand()
-    .path(['./node_modules/.bin', './myScripts])
-    ...
-```    
 ### Synchronous Execution
 
 To specify the commands to run synchronously, use the `.sync()` method:
 
 ```javascript
-new ShellCommand()
-    .path('./node_modules/.bin')
+new CommandQueue()
     .sync(
         'rimraf dist/'
         `mkdir dist/'
@@ -93,8 +58,7 @@ new ShellCommand()
 To specify the commands to run asynchronously, use the `.async()` method:
 
 ```javascript
-new ShellCommand()
-    .path('./node_modules/.bin')
+new CommandQueue()
     .async(
         'karma start'
         `webpack-dev-server --hot'
@@ -102,20 +66,15 @@ new ShellCommand()
     .run();
 ```
 
-### Parallel Shell Execution
+### Parallel Execution
 
-[Parallel Shell](https://www.npmjs.com/package/parallelshell) 
-runs commands asynchronously but treats them as a single 
-process in regards to termination. This is particularly useful when you 
-need to kill all your commands at once. See Parallel Shell's README for a 
-full explanation of its features.
+Parallel execution runs the commands asynchronously, but if one fails,
+the remaining commands are terminated using SIGINT.
 
-To specify the commands to run using Parallel Shell, 
-use the `.parallel()` method:
+To specify the commands to run in parallel, use the `.parallel()` method:
 
 ```javascript
-new ShellCommand()
-    .path('./node_modules/.bin')
+new CommandQueue()
     .parallel(
         'karma start'
         `webpack-dev-server --hot'
@@ -123,17 +82,19 @@ new ShellCommand()
     .run();
 ```
 
+**Note:** This functionality is inpsired by [Parallel Shell](https://www.npmjs.com/package/parallelshell).
+
 ### Batched Execution
 
-ShellCommand batches the execution of commands by waiting for the current set 
+CommandQueue batches the execution of commands by waiting for the current set 
 of commands to complete before executing the next set of commands.
 
-In this example, ShellCommand waits for the A commands to complete
+In this example, CommandQueue waits for the A commands to complete
 before executing the B commands, and waits for the B commands to complete
 before executing the C commands.
 
 ```javascript
-new ShellCommand()
+new CommandQueue()
     .async(
         'command A1',
         'command A2',
@@ -152,27 +113,15 @@ new ShellCommand()
     .run();
 ```
 
-
-
 ### Nested Execution
 
-The `.sync()` and `.async()` methods can be passed ShellCommand instances
-as commands:
+CommandQueue can accept itself as a command.
 
 ```javascript
-new ShellCommand()
-    .async(
-        'command A1',
-        new ShellCommand().sync(
-            'command A2a' 
-            'command A2b' 
-            'command A2c' 
-        ),
-        'command A3'
-    )
+new CommandQueue()
     .sync(
         'command B1',
-        new ShellCommand().parallel(
+        new CommandQueue().parallel(
             'command B2a' 
             'command B2b' 
             'command B2c' 
@@ -182,18 +131,23 @@ new ShellCommand()
     .run();
 ```
 
-**Note:** The `.parallel()` method can only be passed strings for specifying commands.
-
 ### Run
-
-To begin command execution use the `.run()` method:
-
-```javascript
-new ShellCommand()
-    .sync('command 1')
-    .run();
-```    
 
 The `.run()` method returns a 
 [deferred](https://www.npmjs.com/package/deferred) promise which is resolved
 when all the commands have completed. 
+
+```javascript
+new CommandQueue()
+    .sync('command 1')
+    .run()
+    .then(
+        function() {
+            console.log('done');
+        },
+        function() {
+            console.log('failed');
+        }
+    );
+```    
+
