@@ -299,6 +299,21 @@ modelProto.close = function() {
     }
 };
 
+/*
+ * Used for testing only.
+ */
+modelProto.areAllClosed = function() {
+    for (var i = 0; i < this.spawned.length; i++) {
+        var child = this.spawned[i];
+        if (!isShellCommand(child)) {
+            if (child.existCode === null) {
+                return false;
+            }
+        }
+    }
+    return true;
+};
+
 //-------------------------------------
 // Utility functions
 //-------------------------------------

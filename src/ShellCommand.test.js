@@ -13,16 +13,13 @@
 
 var ShellCommand = require('./ShellCommand');
 var deferred = require('deferred');
-var path = require('path');
 
 //
 // Commands for testing actual shell processes.
 //
-var nodeCmd = 'node ' +
-    path.join(__dirname, 'testbin', 'testCmd.js');
-var nodeCmdFail = 'node ' +
-    path.join(__dirname, 'testbin', 'testCmd.js') + ' 2';
-
+var nodeCmd = 'node -e "setTimeout(function(){},10);"';
+var nodeCmdDelay = 'node -e "setTimeout(function(){},400);"';
+var nodeCmdFail = 'node -e "throw new Error(\"someError\");"';
 
 /*
  * A ShellCommand used for testing basic logic.
@@ -280,12 +277,15 @@ describe('ShellCommmand', function() {
 
         it('should close all if at least one fails', function(done) {
             var outputQueue = [];
+            var commandQueue = new ShellCommand();
 
-            new ShellCommand()
+            commandQueue
                 .parallel(
                     new Cmd(400, 'A', outputQueue),
                     new Cmd(400, 'B', outputQueue),
-                    new Cmd(1, 'C', outputQueue, false)
+                    nodeCmdDelay,
+                    nodeCmdDelay,
+                    nodeCmdFail
                 )
                 .run()
                 .then(
@@ -294,9 +294,10 @@ describe('ShellCommmand', function() {
                         expect(false).toBe(true);
                     },
                     function() {
-                        expect(outputQueue[0]).toBe('C');
-                        expect(outputQueue[1]).toBe('close A');
-                        expect(outputQueue[2]).toBe('close B');
+                        expect(outputQueue[0]).toBe('close A');
+                        expect(outputQueue[1]).toBe('close B');
+                        expect(commandQueue._shellCommand.areAllClosed())
+                            .toBe(true);
                         done();
                     }
                 );
@@ -378,7 +379,7 @@ describe('ShellCommmand', function() {
     // Nested execution tests
     //----------------------------------
 
-    describe('sync nested within async', function() {
+    describe('nest sync within async', function() {
 
         it('should be executed in the correct order', function(done) {
             var outputQueue = [];
@@ -410,7 +411,7 @@ describe('ShellCommmand', function() {
         });
     });
 
-    describe('async nested within sync', function() {
+    describe('nest async within sync', function() {
 
         it('should be executed in the correct order', function(done) {
             var outputQueue = [];
