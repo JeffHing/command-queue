@@ -154,15 +154,6 @@ function ShellCommandModel() {
 
     // The deferred command returned by the run() method.
     this.runDeferred = null;
-
-    // Windows or Unix.
-    if (process.platform === 'win32') {
-        this.shellCmd = 'cmd';
-        this.shellFlag = '/c';
-    } else {
-        this.shellCmd = 'sh';
-        this.shellFlag = '-c';
-    }
 }
 
 var modelProto = ShellCommandModel.prototype;
@@ -272,13 +263,9 @@ modelProto.runShell = function(cmd) {
     //
     // Run a shell command.
     //
-    var args = [self.shellFlag];
     var def = deferred();
 
-    // Add user command to args.
-    args = args.concat(cmd);
-
-    var child = childProcess.spawn(self.shellCmd, args, {
+    var child = childProcess.exec(cmd, {
         cwd: process.cwd,
         env: process.env,
         stdio: ['pipe', process.stdout, process.stderr]
