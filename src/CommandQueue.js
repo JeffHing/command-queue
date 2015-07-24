@@ -57,29 +57,8 @@ module.exports = CommandQueue;
  *        .run();
  */
 function CommandQueue() {
-    this[MODEL] = new CommandQueueModel();
+    this[MODEL] = new CommandQueueModel(this);
 }
-
-/*
- * Runs a command. This function is intended to be replaceable to customize
- * the child creation process.
- *
- * @param {'sync'|'async'|'parallel'} runType
- * @param {string|object} cmd The user provided command to run.
- * @returns {object} The child process.
- */
-CommandQueue.runCommand = function(runType, cmd) {
-    var args = parse(cmd);
-    var filename = args.shift();
-
-    var childProcess = spawn(filename, args, {
-        cwd: process.cwd,
-        env: process.env,
-        stdio: ['pipe', process.stdout, process.stderr]
-    });
-
-    return childProcess;
-};
 
 var proto = CommandQueue.prototype;
 
@@ -152,6 +131,27 @@ proto.run = function() {
 };
 
 /*
+ * Runs a command. This function is intended to be user replaceable
+ * to customize the child creation process.
+ *
+ * @param {'sync'|'async'|'parallel'} runType
+ * @param {string|object} cmd The user provided command to run.
+ * @returns {object} The child process.
+ */
+proto.runCommand = function(runType, cmd) {
+    var args = parse(cmd);
+    var filename = args.shift();
+
+    var childProcess = spawn(filename, args, {
+        cwd: process.cwd,
+        env: process.env,
+        stdio: ['pipe', process.stdout, process.stderr]
+    });
+
+    return childProcess;
+};
+
+/*
  * Terminates all commands using SIGINT.
  */
 proto.close = function() {
@@ -167,7 +167,10 @@ proto.close = function() {
 /*
  * @constructor
  */
-function CommandQueueModel() {
+function CommandQueueModel(commandQueueInstance) {
+
+    this.commandQueueInstance = commandQueueInstance;
+
     // Queue of batched commands.
     this.queue = [];
 
@@ -283,7 +286,7 @@ modelProto.runCommand = function(runType, cmd) {
     //
     // Run a command.
     //
-    var childProcess = CommandQueue.runCommand(runType, cmd);
+    var childProcess = this.commandQueueInstance.runCommand(runType, cmd);
 
     var child = {
         process: childProcess,

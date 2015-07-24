@@ -21,6 +21,7 @@ managing complex build steps.
     - [Batched Execution](#Batched-execution)
     - [Nested Execution](#Nested-execution)
     - [Run](#run)
+    - [Run Command](#run)
 
 ## Features
 
@@ -151,3 +152,71 @@ new CommandQueue()
     );
 ```    
 
+### Run Command
+
+How a command is run, is fully customizable by replacing or overriding
+the `CommandQueue.prototype.runCommand()` method with your own method.
+
+Here is the default method:
+
+```javascript
+/*
+ * Runs a command. This function is intended to be replaceable to customize
+ * the child creation process.
+ *
+ * @param {'sync'|'async'|'parallel'} runType
+ * @param {string|object} cmd The user provided command to run.
+ * @returns {object} The child process.
+ */
+CommandQueue.prototype.runCommand = function(runType, cmd) {
+    var args = parse(cmd);
+    var filename = args.shift();
+
+    var childProcess = spawn(filename, args, {
+        cwd: process.cwd,
+        env: process.env,
+        stdio: ['pipe', process.stdout, process.stderr]
+    });
+
+    return childProcess;
+};
+```
+
+To customize how a command is run, per instance, override the
+existing runCommand() method:
+
+```javascript
+var queue = new CommandQueue();
+queue.runCommand = function(runType, cmd) {
+    ...
+};
+```
+
+By replacing the `runCommand()` method, you can change not only how a 
+command is run, but also change what types of user arguments are supported 
+by the `.async()`, `sync()`, and `.parallel()` methods.
+
+For example:
+
+```javascript
+var queue = new CommandQueue();
+
+queue.runCommand = function(runType, cmd) {
+    console.log('runType: ' + cmd.message);
+};
+
+queue
+    .sync(
+        {message: 'hello'}
+        {message: 'goodbye'}
+        {message: 'later'}
+    )
+    .run();
+
+```
+
+```javascript
+CommandQueue.runCommand = function(runType, cmd) {
+    console.log('runType: ' + cmd.message);
+}
+```
