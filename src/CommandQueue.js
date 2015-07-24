@@ -3,7 +3,7 @@
  *
  * MIT License
  *
- * Runs groups of commands synchronously or asynchronously.
+ * Executes groups of commands synchronously or asynchronously.
  */
 'use strict';
 
@@ -29,7 +29,7 @@ module.exports = CommandQueue;
 //-------------------------------------
 
 /*
- * CommandQueue provides a programmatic API for running groups of
+ * CommandQueue provides a programmatic API for executing groups of
  * commands synchronously or asynchronously.
  *
  * @constructor
@@ -59,6 +59,27 @@ module.exports = CommandQueue;
 function CommandQueue() {
     this[MODEL] = new CommandQueueModel();
 }
+
+/*
+ * Runs a command. It is intended to be replaceable to customize
+ * the child creation process.
+ *
+ * @param {'sync'|'async'|'parallel'} runType
+ * @param {string|object} cmd The user provided command to run.
+ * @returns {object} The child process.
+ */
+CommandQueue.runCommand = function(runType, cmd) {
+    var args = parse(cmd);
+    var filename = args.shift();
+
+    var childProcess = spawn(filename, args, {
+        cwd: process.cwd,
+        env: process.env,
+        stdio: ['pipe', process.stdout, process.stderr]
+    });
+
+    return childProcess;
+};
 
 var proto = CommandQueue.prototype;
 
@@ -188,7 +209,7 @@ modelProto.runSync = function(cmds) {
 
     function runNext(index) {
         if (index < cmds.length) {
-            self.runCommand(cmds[index]).then(
+            self.runCommand('sync', cmds[index]).then(
                 function() {
                     runNext(index + 1);
                 },
@@ -211,7 +232,7 @@ modelProto.runSync = function(cmds) {
 modelProto.runAsync = function(cmds) {
     var promises = [];
     for (var i = 0; i < cmds.length; i++) {
-        promises.push(this.runCommand(cmds[i]));
+        promises.push(this.runCommand('async', cmds[i]));
     }
     return deferred.apply({}, promises);
 };
@@ -227,7 +248,7 @@ modelProto.runParallel = function(cmds) {
 
     var promises = [];
     for (var i = 0; i < cmds.length; i++) {
-        promises.push(this.runCommand(cmds[i], true));
+        promises.push(this.runCommand('parallel', cmds[i]));
     }
     var def = deferred();
     deferred.apply({}, promises).then(
@@ -244,10 +265,11 @@ modelProto.runParallel = function(cmds) {
 /*
  * Runs the command.
  *
+ * @param {'sync'|'async'|'parallel'} runType
  * @param {string|CommandQueue} cmd
  * @return {object} A promise which is resolved when the command completes.
  */
-modelProto.runCommand = function(cmd) {
+modelProto.runCommand = function(runType, cmd) {
     var self = this;
 
     //
@@ -261,20 +283,15 @@ modelProto.runCommand = function(cmd) {
     //
     // Run a command.
     //
-    var def = deferred();
-    var args = parse(cmd);
-    var filename = args.shift();
-
-    var childProcess = spawn(filename, args, {
-        cwd: process.cwd,
-        env: process.env,
-        stdio: ['pipe', process.stdout, process.stderr]
-    });
+    var childProcess = CommandQueue.runCommand(runType, cmd);
 
     var child = {
         process: childProcess,
-        closed: false
+        closed: false,
+        killed: false
     };
+
+    var def = deferred();
 
     childProcess.on('close', function(code) {
         child.closed = true;
@@ -298,7 +315,8 @@ modelProto.close = function() {
         var child = this.children[i];
         if (isCommandQueue(child)) {
             child[MODEL].close();
-        } else if (!child.closed) {
+        } else if (!child.closed && !child.killed) {
+            child.killed = true;
             child.process.kill('SIGINT');
         }
     }
