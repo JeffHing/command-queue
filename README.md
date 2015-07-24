@@ -19,7 +19,7 @@ managing complex build steps.
     - [Parallel Execution](#Parallel-execution)
     - [Batched Execution](#Batched-execution)
     - [Nested Execution](#Nested-execution)
-    - [Run](#run)
+    - [Run Promise](#run-promise)
     - [Run Command Customization](#run-command-customization)
 
 ## Features
@@ -115,7 +115,7 @@ new CommandQueue()
 
 ### Nested Execution
 
-CommandQueue can accept itself as a command.
+CommandQueue can accept itself as a command:
 
 ```javascript
 new CommandQueue()
@@ -131,7 +131,7 @@ new CommandQueue()
     .run();
 ```
 
-### Run
+### Run Promise
 
 The `.run()` method returns a 
 [deferred](https://www.npmjs.com/package/deferred) promise which is resolved
