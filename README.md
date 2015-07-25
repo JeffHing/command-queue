@@ -105,12 +105,12 @@ new CommandQueue()
         'command A2',
         'command A3'
     )
-    .async(
+    .parallel(
         'command B1',
         'command B2',
         'command B3'
     )
-    .async(
+    .sync(
         'command C1',
         'command C2',
         'command C3'
@@ -201,16 +201,20 @@ By replacing the `runCommand()` method, you can also change what types of
 user arguments are supported by the `.async()`, `sync()`, 
 and `.parallel()` methods.
 
-For example:
+The following example shows how you can pass in a `cmd` as an object with
+various properties instead of a string:
 
 ```javascript
 var queue = new CommandQueue();
 
 queue.runCommand = function(cmd, shell, shellFlag, runType) {
     console.log(runType + ':' + cmd.message);
+    
     var args = [shellFlag, cmd.nodeCmd];
+    
     var childProcess =  spawn(shell, args, ...);
-    return childProcess;
+    
+    ...
 };
 
 queue
