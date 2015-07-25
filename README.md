@@ -21,6 +21,8 @@ managing complex build steps.
     - [Nested Execution](#nested-execution)
     - [Run Promise](#run-promise)
     - [Run Command Customization](#run-command-customization)
+    - [Close](#close)
+    - [Posix or Win32](#posix-or-win32)
 
 ## Features
 
@@ -45,6 +47,9 @@ var CommandQueue = require("command-queue");
 To specify the commands to run synchronously, use the `.sync()` method:
 
 ```javascript
+// Update your PATH if necessary.
+process.env.PATH += './node_modules/.bin';
+
 new CommandQueue()
     .sync(
         'rimraf dist/'
@@ -115,7 +120,7 @@ new CommandQueue()
 
 ### Nested Execution
 
-CommandQueue can accept itself as a command:
+CommandQueue itself can be used as a command:
 
 ```javascript
 new CommandQueue()
@@ -135,7 +140,7 @@ new CommandQueue()
 
 The `.run()` method returns a 
 [deferred](https://www.npmjs.com/package/deferred) promise which is resolved
-when all the commands have completed. 
+when the commands have completed, or a command terminated with an error.
 
 ```javascript
 new CommandQueue()
@@ -153,25 +158,26 @@ new CommandQueue()
 
 ### Run Command Customization
 
-How a command is run, is fully customizable by replacing or overriding
-the `CommandQueue.prototype.runCommand()` method with your own method.
+To customize how a command is run, replace or overide the
+`CommandQueue.prototype.runCommand()` method.
 
 Here is the default method:
 
 ```javascript
 /*
- * Runs a command. This function is intended to be replaceable to customize
- * the child creation process.
+ * Runs a command. This function is intended to be user replaceable
+ * to customize the child creation process.
  *
  * @param {string|object} cmd The user provided command to run.
+ * @param {string} shell The shell commmand
+ * @param {string} shellFlag The shell flag
  * @param {'sync'|'async'|'parallel'} runType
  * @returns {object} The child process.
  */
-CommandQueue.prototype.runCommand = function(cmd, runType) {
-    var args = parse(cmd);
-    var filename = args.shift();
+CommandQueue.prototype.runCommand = function(cmd, shell, shellFlag, runType) {
+    var args = [shellFlag, cmd];
 
-    var childProcess = spawn(filename, args, {
+    var childProcess = spawn(shell, args, {
         cwd: process.cwd,
         env: process.env,
         stdio: ['pipe', process.stdout, process.stderr]
@@ -186,7 +192,7 @@ existing runCommand() method:
 
 ```javascript
 var queue = new CommandQueue();
-queue.runCommand = function(cmd, runType) {
+queue.runCommand = function(cmd, shell, shellFlag, runType) {
     ...
 };
 ```
@@ -200,9 +206,10 @@ For example:
 ```javascript
 var queue = new CommandQueue();
 
-queue.runCommand = function(cmd, runType) {
-    console.log('runType: ' + cmd.message);
-    var childProcess =  exec(cmd.nodeCmd, ...);
+queue.runCommand = function(cmd, shell, shellFlag, runType) {
+    console.log(runType + ':' + cmd.message);
+    var args = [shellFlag, cmd.nodeCmd];
+    var childProcess =  spawn(shell, args, ...);
     return childProcess;
 };
 
@@ -213,4 +220,53 @@ queue
     })
     .run();
 
+```
+
+### Close
+
+To terminate any remaining commands, use the `.close()` method. It will send
+a SIGINT to those commands.
+
+var queue = new CommandQueue();
+
+```javascript
+queue
+    .async(
+        'command 1',
+        'command 2',
+        'command 3'
+    )
+    .run()
+    .then(    
+        function() {
+            console.log('success');
+        },
+        function() {
+            console.log('failure');
+            
+            // Close any remaining commands.
+            queue.close();
+        }
+    );
+```
+
+### Posix or Win32
+
+By default CommandQueue will detect the current platform and use the appropriate
+shell for executing the commands. However, you can force CommandQueue to use
+a specific platform's shell by calling either the `.posix()' method, or 
+the `.win32()` method.
+
+```javascript
+new CommandQueue()
+    .posix()
+    .sync(...)    
+    .run();    
+```
+
+```javascript
+new CommandQueue()
+    .win32()
+    .sync(...)    
+    .run();    
 ```
