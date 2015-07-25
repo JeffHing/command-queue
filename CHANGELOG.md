@@ -1,2 +1,5 @@
+### 0.1.1 (2015-07-21)
+* README updates.
+
 ### 0.1.0 (2015-07-21)
 * Initial version
