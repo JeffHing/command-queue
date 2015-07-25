@@ -47,12 +47,12 @@ var CommandQueue = require("command-queue");
 To specify the commands to run synchronously, use the `.sync()` method:
 
 ```javascript
-// Update your PATH if necessary.
-process.env.PATH += './node_modules/.bin';
+// Update the PATH if necessary.
+process.env.PATH += ';./node_modules/.bin';
 
 new CommandQueue()
     .sync(
-        'rimraf dist/'
+        'rimraf dist/',
         `mkdir dist/'
     )
     .run();
@@ -65,7 +65,7 @@ To specify the commands to run asynchronously, use the `.async()` method:
 ```javascript
 new CommandQueue()
     .async(
-        'karma start'
+        'karma start',
         `webpack-dev-server --hot'
     )
     .run();
@@ -78,7 +78,7 @@ To specify the commands to run in parallel, use the `.parallel()` method:
 ```javascript
 new CommandQueue()
     .parallel(
-        'karma start'
+        'karma start',
         `webpack-dev-server --hot'
     )
     .run();
@@ -91,9 +91,9 @@ the remaining commands are terminated using SIGTERM.
 
 ### Batched Execution
 
-Each call to `.async()`, `.sync()`, or `.parallel()` creates a new batch
-of commands. CommandQueue waits for the current batch of commands to complete
-before executing the next batch of commands.
+Each call to an `.async()`, `.sync()`, or `.parallel()` method creates a
+new batch of commands. CommandQueue waits for the current batch of commands
+to complete before executing the next batch of commands.
 
 In the following example, CommandQueue waits for the A commands to complete
 before executing the B commands, and waits for the B commands to complete
@@ -128,8 +128,8 @@ new CommandQueue()
     .sync(
         'command B1',
         new CommandQueue().parallel(
-            'command B2a' 
-            'command B2b' 
+            'command B2a',
+            'command B2b',
             'command B2c' 
         ),
         'command B3'
@@ -141,7 +141,7 @@ new CommandQueue()
 
 To start command execution, use the `.run()` method. The `.run()` method 
 returns a [deferred](https://www.npmjs.com/package/deferred) promise which
-is resolved when the commands have completed, or a command has terminated with 
+is resolved when the commands have completed or a command has terminated with 
 an error.
 
 ```javascript
@@ -260,11 +260,10 @@ queue.runCommand = function(cmd, shell, shellFlag, runType) {
     ...
 };
 
-queue
-    .sync({
-        message: 'hello',
-        nodeCmd: 'node foobar.js'
-    })
-    .run();
+queue.sync({
+    message: 'hello',
+    nodeCmd: 'node foobar.js'
+});
 
+queue.run();
 ```
