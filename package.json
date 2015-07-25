@@ -21,8 +21,7 @@
     "url": "https://github.com/JeffHing/command-queue.git"
   },
   "dependencies": {
-    "deferred": "^0.7.2",
-    "parse-spawn-args": "^1.0.2"
+    "deferred": "^0.7.2"
   },
   "devDependencies": {
     "eslint": "^0.23.0",
