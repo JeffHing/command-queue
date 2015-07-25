@@ -253,7 +253,7 @@ user arguments that can be passed into the `.async()`, `sync()`,
 and `.parallel()` methods.
 
 The following example shows how the `runCommand()` method is changed to
-accept a command object with various properties, instead of a command string,
+accept a object with various properties as a command, instead of a string,
 and how the `.sync()` method can now be passed such an object.
 
 ```javascript
