@@ -8,15 +8,26 @@
 'use strict';
 
 //-------------------------------------
+// Module dependencies and variables.
+//-------------------------------------
+
+// Indicates whether the config is for watching.
+var isWatch = false;
+
+//-------------------------------------
 // Module exports
 //-------------------------------------
+
+if (process.argv[2] === '--watch') {
+    isWatch = true;
+}
 
 module.exports = {
 
     entry: './src/CommandQueue.js',
 
     eslint: {
-        failOnError: false
+        failOnError: !isWatch
     },
 
     externals: {
