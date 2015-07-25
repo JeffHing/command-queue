@@ -24,8 +24,8 @@ managing complex build steps.
 
 ## Features
 
-* Flexible combinations of synchronous and asynchronous execution.
-* Fully customize how a command is executed.
+* Flexible combinations of synchronous and asynchronous command execution.
+* Full customization of the function used to execute each command.
 
 ## Installation
 
