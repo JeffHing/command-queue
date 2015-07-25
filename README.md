@@ -221,8 +221,8 @@ Here is the default method:
  * to allow customization of the child creation process.
  *
  * @param {string} cmd The user provided command to run.
- * @param {string} shell The shell commmand
- * @param {string} shellFlag The shell flag
+ * @param {string} shell The shell commmand.
+ * @param {string} shellFlag The shell flag.
  * @param {'sync'|'async'|'parallel'} runType
  * @returns {object} The child process.
  */
