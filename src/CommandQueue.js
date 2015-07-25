@@ -157,7 +157,7 @@ proto.run = function() {
 
 /*
  * Runs a command. This function is intended to be user replaceable
- * to customize the child creation process.
+ * to allow customization of the child creation process.
  *
  * @param {string|object} cmd The user provided command to run.
  * @param {string} shell The shell commmand
