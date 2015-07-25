@@ -92,7 +92,7 @@ the remaining commands are terminated using SIGTERM.
 ### Batched Execution
 
 Each call to `.async()`, `.sync()`, or `.parallel()` creates a new batch
-of commands. CommanQueue waits for the current batch of commands to complete
+of commands. CommandQueue waits for the current batch of commands to complete
 before executing the next batch of commands.
 
 In the following example, CommandQueue waits for the A commands to complete
