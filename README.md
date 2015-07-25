@@ -94,7 +94,7 @@ new CommandQueue()
 CommandQueue batches the execution of commands by waiting for the current set 
 of commands to complete before executing the next set of commands.
 
-In this example, CommandQueue waits for the A commands to complete
+In the following example, CommandQueue waits for the A commands to complete
 before executing the B commands, and waits for the B commands to complete
 before executing the C commands.
 
@@ -162,9 +162,10 @@ new CommandQueue()
 To terminate any remaining commands, use the `.close()` method. It will send
 a SIGINT to those commands.
 
-var queue = new CommandQueue();
 
 ```javascript
+var queue = new CommandQueue();
+
 queue
     .async(
         'command 1',
@@ -208,7 +209,7 @@ new CommandQueue()
 
 ### Run Command Customization
 
-To customize how a command is run, replace or overide the
+To customize how a command is run, replace or override the
 `CommandQueue.prototype.runCommand()` method.
 
 Here is the default method:
@@ -238,7 +239,7 @@ CommandQueue.prototype.runCommand = function(cmd, shell, shellFlag, runType) {
 ```
 
 To customize how a command is run per instance, override the
-existing runCommand() method:
+instance's runCommand() method:
 
 ```javascript
 var queue = new CommandQueue();
