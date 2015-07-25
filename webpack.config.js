@@ -11,23 +11,18 @@
 // Module dependencies and variables.
 //-------------------------------------
 
-// Indicates whether the config is for watching.
-var isWatch = false;
+var flags = require('minimist')(process.argv.slice(2));
 
 //-------------------------------------
 // Module exports
 //-------------------------------------
-
-if (process.argv[2] === '--watch') {
-    isWatch = true;
-}
 
 module.exports = {
 
     entry: './src/CommandQueue.js',
 
     eslint: {
-        failOnError: !isWatch
+        failOnError: !flags.watch
     },
 
     externals: {

@@ -3,7 +3,7 @@
  *
  * MIT License
  *
- * Run build commmands.
+ * Build commmands.
  */
 'use strict';
 
