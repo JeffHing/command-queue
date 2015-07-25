@@ -19,10 +19,10 @@ managing complex build steps.
     - [Parallel Execution](#parallel-execution)
     - [Batched Execution](#batched-execution)
     - [Nested Execution](#nested-execution)
-    - [Run Promise](#run-promise)
-    - [Run Command Customization](#run-command-customization)
+    - [Run](#run)
     - [Close](#close)
     - [Posix or Win32](#posix-or-win32)
+    - [Run Command Customization](#run-command-customization)
 
 ## Features
 
@@ -136,11 +136,12 @@ new CommandQueue()
     .run();
 ```
 
-### Run Promise
+### Run
 
-The `.run()` method returns a 
-[deferred](https://www.npmjs.com/package/deferred) promise which is resolved
-when the commands have completed, or a command terminated with an error.
+To start command execution, use the `.run()` method. The `.run()` method 
+returns a [deferred](https://www.npmjs.com/package/deferred) promise which
+is resolved when the commands have completed, or a command has terminated with 
+an error.
 
 ```javascript
 new CommandQueue()
@@ -151,10 +152,59 @@ new CommandQueue()
             console.log('done');
         },
         function() {
-            console.log('failed');
+            console.log('a command failed');
         }
     );
 ```    
+
+### Close
+
+To terminate any remaining commands, use the `.close()` method. It will send
+a SIGINT to those commands.
+
+var queue = new CommandQueue();
+
+```javascript
+queue
+    .async(
+        'command 1',
+        'command 2',
+        'command 3'
+    )
+    .run()
+    .then(    
+        function() {
+            console.log('success');
+        },
+        function() {
+            console.log('failure');
+            
+            // Close any remaining commands.
+            queue.close();
+        }
+    );
+```
+
+### Posix or Win32
+
+By default CommandQueue will detect the current platform and use the appropriate
+shell for executing the commands. However, you can force CommandQueue to use
+a specific platform's shell by using either the `.posix()` method, or 
+the `.win32()` method.
+
+```javascript
+new CommandQueue()
+    .posix()
+    .sync(...)    
+    .run();    
+```
+
+```javascript
+new CommandQueue()
+    .win32()
+    .sync(...)    
+    .run();    
+```
 
 ### Run Command Customization
 
@@ -166,7 +216,7 @@ Here is the default method:
 ```javascript
 /*
  * Runs a command. This function is intended to be user replaceable
- * to customize the child creation process.
+ * to allow customization of the child creation process.
  *
  * @param {string|object} cmd The user provided command to run.
  * @param {string} shell The shell commmand
@@ -201,8 +251,8 @@ By replacing the `runCommand()` method, you can also change what types of
 user arguments are supported by the `.async()`, `sync()`, 
 and `.parallel()` methods.
 
-The following example shows how you can pass in a `cmd` as an object with
-various properties instead of a string:
+The following example shows how you can change the `runCommand()` to
+accept a `cmd` as an object with various properties instead of a string:
 
 ```javascript
 var queue = new CommandQueue();
@@ -224,53 +274,4 @@ queue
     })
     .run();
 
-```
-
-### Close
-
-To terminate any remaining commands, use the `.close()` method. It will send
-a SIGINT to those commands.
-
-var queue = new CommandQueue();
-
-```javascript
-queue
-    .async(
-        'command 1',
-        'command 2',
-        'command 3'
-    )
-    .run()
-    .then(    
-        function() {
-            console.log('success');
-        },
-        function() {
-            console.log('failure');
-            
-            // Close any remaining commands.
-            queue.close();
-        }
-    );
-```
-
-### Posix or Win32
-
-By default CommandQueue will detect the current platform and use the appropriate
-shell for executing the commands. However, you can force CommandQueue to use
-a specific platform's shell by calling either the `.posix()' method, or 
-the `.win32()` method.
-
-```javascript
-new CommandQueue()
-    .posix()
-    .sync(...)    
-    .run();    
-```
-
-```javascript
-new CommandQueue()
-    .win32()
-    .sync(...)    
-    .run();    
 ```
