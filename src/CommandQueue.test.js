@@ -77,6 +77,7 @@ describe('CommandQueue', function() {
 
         it('should succeed', function(done) {
             new CommandQueue()
+                .posix()
                 .sync(nodeCmd)
                 .run()
                 .then(
@@ -92,6 +93,7 @@ describe('CommandQueue', function() {
 
         it('should fail', function(done) {
             new CommandQueue()
+                .posix()
                 .sync(nodeCmdFail)
                 .run()
                 .then(
@@ -107,6 +109,7 @@ describe('CommandQueue', function() {
 
         it('should fail if at least one fails', function(done) {
             new CommandQueue()
+                .posix()
                 .sync(
                     nodeCmd,
                     nodeCmdFail,
@@ -128,6 +131,7 @@ describe('CommandQueue', function() {
             var outputQueue = [];
 
             new CommandQueue()
+                .posix()
                 .sync(
                     new Cmd(400, 'A', outputQueue),
                     new Cmd(1, 'B', outputQueue),
@@ -153,6 +157,7 @@ describe('CommandQueue', function() {
 
         it('should succeed', function(done) {
             new CommandQueue()
+                .posix()
                 .async(nodeCmd)
                 .run()
                 .then(
@@ -168,6 +173,7 @@ describe('CommandQueue', function() {
 
         it('should fail', function(done) {
             new CommandQueue()
+                .posix()
                 .async(nodeCmdFail)
                 .run()
                 .then(
@@ -183,6 +189,7 @@ describe('CommandQueue', function() {
 
         it('should fail if at least one fails', function(done) {
             new CommandQueue()
+                .posix()
                 .async(
                     nodeCmd,
                     nodeCmdFail,
@@ -229,6 +236,7 @@ describe('CommandQueue', function() {
 
         it('should succeed', function(done) {
             new CommandQueue()
+                .posix()
                 .parallel(nodeCmd)
                 .run()
                 .then(
@@ -244,6 +252,7 @@ describe('CommandQueue', function() {
 
         it('should fail', function(done) {
             new CommandQueue()
+                .posix()
                 .parallel(nodeCmdFail)
                 .run()
                 .then(
@@ -259,6 +268,7 @@ describe('CommandQueue', function() {
 
         it('should fail if at least one fails', function(done) {
             new CommandQueue()
+                .posix()
                 .parallel(
                     nodeCmd,
                     nodeCmdFail,
@@ -281,6 +291,7 @@ describe('CommandQueue', function() {
             var commandQueue = new CommandQueue();
 
             commandQueue
+                .posix()
                 .parallel(
                     new Cmd(400, 'A', outputQueue),
                     new Cmd(400, 'B', outputQueue),
@@ -486,6 +497,7 @@ describe('CommandQueue', function() {
             var commandQueue = new CommandQueue();
 
             commandQueue
+                .posix()
                 .parallel(
                     new Cmd(400, 'A', outputQueue),
                     new Cmd(400, 'B', outputQueue),
@@ -523,8 +535,8 @@ describe('CommandQueue', function() {
         it('should output correct runTypes and messages', function() {
             var outputQueue = [];
 
-            var queue = new CommandQueue();
-            queue.runCommand = function(cmd, runType) {
+            var queue = new CommandQueue().posix();
+            queue.runCommand = function(cmd, shell, shellFlag, runType) {
                 outputQueue.push(runType + ':' + cmd.message);
 
                 var childProcess = exec(cmd.cmd, {

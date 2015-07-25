@@ -13,7 +13,6 @@
 
 var spawn = require('child_process').spawn;
 var deferred = require('deferred');
-var parse = require('parse-spawn-args').parse;
 
 // Private model name.
 var MODEL = '_commandQueue';
@@ -58,9 +57,35 @@ module.exports = CommandQueue;
  */
 function CommandQueue() {
     this[MODEL] = new CommandQueueModel(this);
+    if (process.platform === 'win32') {
+        this.win32();
+    } else {
+        this.posix();
+    }
 }
 
 var proto = CommandQueue.prototype;
+
+/*
+ * Specifies that a BASH shell should be used for executing commands.
+ */
+proto.posix = function() {
+    var m = this[MODEL];
+    m.shell = 'sh';
+    m.shellFlag = '-c';
+    return this;
+};
+
+/*
+ * Specifies that a Windows command shell should be used for executing
+ * commands.
+ */
+proto.win32 = function() {
+    var m = this[MODEL];
+    m.shell = 'cmd';
+    m.shellFlag = '/c';
+    return this;
+};
 
 /*
  * Specifies that the commands should be run synchronously.
@@ -135,14 +160,15 @@ proto.run = function() {
  * to customize the child creation process.
  *
  * @param {string|object} cmd The user provided command to run.
+ * @param {string} shell The shell commmand
+ * @param {string} shellFlag The shell flag
  * @param {'sync'|'async'|'parallel'} runType
  * @returns {object} The child process.
  */
-proto.runCommand = function(cmd) {
-    var args = parse(cmd);
-    var filename = args.shift();
+proto.runCommand = function(cmd, shell, shellFlag) {
+    var args = [shellFlag, cmd];
 
-    var childProcess = spawn(filename, args, {
+    var childProcess = spawn(shell, args, {
         cwd: process.cwd,
         env: process.env,
         stdio: ['pipe', process.stdout, process.stderr]
@@ -286,7 +312,8 @@ modelProto.runCommand = function(cmd, runType) {
     //
     // Run a command.
     //
-    var childProcess = this.commandQueueInstance.runCommand(cmd, runType);
+    var childProcess = this.commandQueueInstance.runCommand(
+        cmd, self.shell, self.shellFlag, runType);
 
     var child = {
         process: childProcess,
