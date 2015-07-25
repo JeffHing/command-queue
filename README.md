@@ -26,8 +26,9 @@ managing complex build steps.
 
 ## Features
 
-* Flexible combinations of synchronous and asynchronous command execution.
-* Full customization of the function used to execute each command.
+* Supports different combinations of synchronous and asynchronous
+command execution.
+* Allows full customization of [child_process](https://nodejs.org/api/child_process.html#child_process_asynchronous_process_creation) parameters for executing a command.
 
 ## Installation
 
