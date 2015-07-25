@@ -73,9 +73,6 @@ new CommandQueue()
 
 ### Parallel Execution
 
-Parallel execution runs the commands asynchronously, but if one fails,
-the remaining commands are terminated using SIGINT.
-
 To specify the commands to run in parallel, use the `.parallel()` method:
 
 ```javascript
@@ -86,6 +83,9 @@ new CommandQueue()
     )
     .run();
 ```
+
+Parallel execution runs the commands asynchronously, but if one fails,
+the remaining commands are terminated using SIGINT.
 
 **Note:** This functionality is inpsired by [Parallel Shell](https://www.npmjs.com/package/parallelshell).
 
