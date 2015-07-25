@@ -178,7 +178,7 @@ proto.runCommand = function(cmd, shell, shellFlag) {
 };
 
 /*
- * Terminates all commands using SIGINT.
+ * Terminates all commands using SIGTERM.
  */
 proto.close = function() {
     var m = this[MODEL];
@@ -338,7 +338,7 @@ modelProto.runCommand = function(cmd, runType) {
 };
 
 /*
- * Closes all children processes using SIGINT.
+ * Closes all children processes using SIGTERM.
  */
 modelProto.close = function() {
     for (var i = 0; i < this.children.length; i++) {
@@ -347,7 +347,7 @@ modelProto.close = function() {
             child[MODEL].close();
         } else if (!child.closed && !child.killed) {
             child.killed = true;
-            child.process.kill('SIGINT');
+            child.process.kill('SIGTERM');
         }
     }
 };

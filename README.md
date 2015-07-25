@@ -85,14 +85,15 @@ new CommandQueue()
 ```
 
 Parallel execution runs the commands asynchronously, but if one fails,
-the remaining commands are terminated using SIGINT.
+the remaining commands are terminated using SIGTERM.
 
 **Note:** This functionality is inpsired by [Parallel Shell](https://www.npmjs.com/package/parallelshell).
 
 ### Batched Execution
 
-CommandQueue batches the execution of commands by waiting for the current set 
-of commands to complete before executing the next set of commands.
+Each call to `.async()`, `.sync()`, or `.parallel()` creates a new batch
+of commands. CommanQueue waits for the current batch of commands to complete
+before executing the next batch of commands.
 
 In the following example, CommandQueue waits for the A commands to complete
 before executing the B commands, and waits for the B commands to complete
@@ -159,8 +160,8 @@ new CommandQueue()
 
 ### Close
 
-To terminate any remaining commands, use the `.close()` method. It will send
-a SIGINT to those commands.
+To terminate currently running commands, use the `.close()` method. It will send
+a SIGTERM to those commands.
 
 
 ```javascript
@@ -235,16 +236,6 @@ CommandQueue.prototype.runCommand = function(cmd, shell, shellFlag, runType) {
     });
 
     return childProcess;
-};
-```
-
-To customize how a command is run per instance, override the
-instance's `.runCommand()` method:
-
-```javascript
-var queue = new CommandQueue();
-queue.runCommand = function(cmd, shell, shellFlag, runType) {
-    ...
 };
 ```
 
