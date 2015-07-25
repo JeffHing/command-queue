@@ -88,7 +88,7 @@ new CommandQueue()
 Parallel execution runs the commands asynchronously, but if one fails,
 the remaining commands are terminated using SIGTERM.
 
-**Note:** This functionality is inpsired by [Parallel Shell](https://www.npmjs.com/package/parallelshell).
+**Note:** This functionality is inspired by [Parallel Shell](https://www.npmjs.com/package/parallelshell).
 
 ### Batched Execution
 
