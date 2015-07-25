@@ -376,6 +376,35 @@ describe('CommandQueue', function() {
                     }
                 );
         });
+
+        it('should not proceed if one fails', function(done) {
+
+            var outputQueue = [];
+
+            new CommandQueue()
+                .async(
+                    new Cmd(1, 'A', outputQueue),
+                    new Cmd(1, 'B', outputQueue),
+                    new Cmd(1, 'C', outputQueue, false)
+                )
+                .sync(
+                    new Cmd(1, 'D', outputQueue)
+                )
+                .run()
+                .then(
+                    function() {
+                        // Should not get here.
+                        expect(false).toBe(true);
+                    },
+                    function() {
+                        expect(outputQueue[0]).toBe('A');
+                        expect(outputQueue[1]).toBe('B');
+                        expect(outputQueue[2]).toBe('C');
+                        expect(outputQueue[3]).toBe(undefined);
+                        done();
+                    }
+                );
+        });
     });
 
     //----------------------------------
