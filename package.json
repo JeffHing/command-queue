@@ -1,7 +1,7 @@
 {
   "name": "command-queue",
   "main": "./src/CommandQueue.js",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A programmatic API for executing groups of commands synchronously or asynchronously.",
   "keywords": [
     "asynchronous",
