@@ -20,7 +20,7 @@ var testCmd = 'jasmine-node src/CommandQueue.test.js --color --matchall';
 var testAndWatchCmd = testCmd + ' --autotest --watch src/CommandQueue.js';
 
 // Run webpack for linting.
-var webpackCmd = 'webpack';
+var webpackCmd = 'webpack --bail';
 
 // Run webpack for linting and watch for changes.
 var webpackWatchCmd = 'webpack --watch';
