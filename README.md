@@ -54,7 +54,7 @@ process.env.PATH += ';./node_modules/.bin';
 new CommandQueue()
     .sync(
         'rimraf dist/',
-        `mkdir dist/'
+        'mkdir dist/'
     )
     .run();
 ```
@@ -67,7 +67,7 @@ To specify the commands to run asynchronously, use the `.async()` method:
 new CommandQueue()
     .async(
         'karma start',
-        `webpack-dev-server --hot'
+        'webpack-dev-server --hot'
     )
     .run();
 ```
@@ -80,7 +80,7 @@ To specify the commands to run in parallel, use the `.parallel()` method:
 new CommandQueue()
     .parallel(
         'karma start',
-        `webpack-dev-server --hot'
+        'webpack-dev-server --hot'
     )
     .run();
 ```
