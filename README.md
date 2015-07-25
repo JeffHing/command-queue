@@ -239,7 +239,7 @@ CommandQueue.prototype.runCommand = function(cmd, shell, shellFlag, runType) {
 ```
 
 To customize how a command is run per instance, override the
-instance's runCommand() method:
+instance's `.runCommand()` method:
 
 ```javascript
 var queue = new CommandQueue();
@@ -248,12 +248,13 @@ queue.runCommand = function(cmd, shell, shellFlag, runType) {
 };
 ```
 
-By replacing the `runCommand()` method, you can also change what types of 
-user arguments are supported by the `.async()`, `sync()`, 
+By customizing the `runCommand()` method, you can also change the types of 
+user arguments that can be passed into the `.async()`, `sync()`, 
 and `.parallel()` methods.
 
-The following example shows how you can change the `runCommand()` to
-accept a `cmd` as an object with various properties instead of a string:
+The following example shows how the `runCommand()` method is changed to
+accept a `cmd` as an object with various properties, instead of a string,
+and how the `.sync()` method can now be passed such an object.
 
 ```javascript
 var queue = new CommandQueue();
