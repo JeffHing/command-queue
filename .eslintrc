@@ -41,7 +41,7 @@
 
         "accessor-pairs": 2,
         "block-scoped-var": 2,
-        "complexity": 2,
+        "complexity": 0,
         "consistent-return": 2,
         "curly": 2,
         "default-case": 0,
@@ -132,7 +132,7 @@
         "newline-after-var": 0,
         "no-array-constructor": 2,
         "no-continue": 2,
-        "no-inline-comments": 2,
+        "no-inline-comments": 0,
         "no-lonely-if": 2,
         "no-mixed-spaces-and-tabs": 2,
         "no-multiple-empty-lines": 2,
