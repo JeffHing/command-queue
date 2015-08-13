@@ -4,7 +4,9 @@
 
 CommandQueue provides a flexible API for executing groups of
 commands synchronously or asynchronously. It was originally created to
-provide an alternative to using the "scripts" object in package.json for 
+provide an alternative to using the
+[scripts](https://docs.npmjs.com/misc/scripts)
+field in package.json for
 executing commands. By using CommandQueue, you can easily execute 
 commands from a JavaScript file instead, which is better suited for 
 managing complex build steps.
@@ -241,7 +243,7 @@ CommandQueue.prototype.runCommand = function(cmd, shell, shellFlag, runType) {
 ```
 
 By customizing the `runCommand()` method, you can also change the types of 
-user arguments that can be passed into the `.async()`, `sync()`, 
+user arguments that can be passed into the `.async()`, `.sync()`, 
 and `.parallel()` methods.
 
 The following example shows how the `runCommand()` method is changed to
