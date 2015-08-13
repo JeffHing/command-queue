@@ -2,7 +2,7 @@
 
 # CommandQueue
 
-CommandQueue provides a programmatic API for executing groups of
+CommandQueue provides a flexible API for executing groups of
 commands synchronously or asynchronously. It was originally created to
 provide an alternative to using the "scripts" object in package.json for 
 executing commands. By using CommandQueue, you can easily execute 
@@ -17,8 +17,8 @@ managing complex build steps.
     - [Synchronous Execution](#synchronous-execution)
     - [Asynchronous Execution](#asynchronous-execution)
     - [Parallel Execution](#parallel-execution)
-    - [Batched Execution](#batched-execution)
     - [Nested Execution](#nested-execution)
+    - [Batched Execution](#batched-execution)
     - [Run](#run)
     - [Close](#close)
     - [Posix or Win32](#posix-or-win32)
@@ -90,6 +90,24 @@ the remaining commands are terminated using SIGTERM.
 
 **Note:** This functionality is inspired by [Parallel Shell](https://www.npmjs.com/package/parallelshell).
 
+### Nested Execution
+
+CommandQueue itself can be used as a command:
+
+```javascript
+new CommandQueue()
+    .sync(
+        'command B1',
+        new CommandQueue().async(
+            'command B2a',
+            'command B2b',
+            'command B2c' 
+        ),
+        'command B3'
+    )
+    .run();
+```
+
 ### Batched Execution
 
 Each call to an `.async()`, `.sync()`, or `.parallel()` method creates a
@@ -116,24 +134,6 @@ new CommandQueue()
         'command C1',
         'command C2',
         'command C3'
-    )
-    .run();
-```
-
-### Nested Execution
-
-CommandQueue itself can be used as a command:
-
-```javascript
-new CommandQueue()
-    .sync(
-        'command B1',
-        new CommandQueue().parallel(
-            'command B2a',
-            'command B2b',
-            'command B2c' 
-        ),
-        'command B3'
     )
     .run();
 ```
