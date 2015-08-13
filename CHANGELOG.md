@@ -1,3 +1,7 @@
+### 0.1.4 (2015-08-12)
+* README updates.
+* Normalize webpack and karma configurations across projects.
+
 ### 0.1.3 (2015-07-21)
 * README updates.
 
