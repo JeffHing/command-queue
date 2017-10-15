@@ -1,3 +1,6 @@
+### 0.1.5 (2017-10-14)
+* Fix process.cwd issue when using node v8.7.0
+
 ### 0.1.4 (2015-08-12)
 * README updates.
 * Normalize webpack and karma configurations across projects.

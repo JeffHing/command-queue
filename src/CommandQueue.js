@@ -169,7 +169,7 @@ proto.runCommand = function(cmd, shell, shellFlag) {
     var args = [shellFlag, cmd];
 
     var childProcess = spawn(shell, args, {
-        cwd: process.cwd,
+        cwd: process.cwd(),
         env: process.env,
         stdio: ['pipe', process.stdout, process.stderr]
     });

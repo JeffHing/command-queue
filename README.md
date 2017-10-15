@@ -51,7 +51,7 @@ To specify the commands to run synchronously, use the `.sync()` method:
 
 ```javascript
 // Update the PATH if necessary.
-process.env.PATH += ';./node_modules/.bin';
+process.env.PATH += ':./node_modules/.bin';
 
 new CommandQueue()
     .sync(
